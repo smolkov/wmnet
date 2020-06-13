@@ -1,0 +1,10 @@
+#!/usr/bin/env ion
+
+echo "run `argv.ion arg1 arg2 argn`"
+
+if test $len(@args) -eq 1
+    echo "Script didn't receive enough arguments"
+    exit
+end
+
+echo Arguments: @args[1..]i

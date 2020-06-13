@@ -1,0 +1,2 @@
+export WQMS_DIR="$HOME/.wqms"
+export PATH="$WQMS_DIR/bin:$PATH"

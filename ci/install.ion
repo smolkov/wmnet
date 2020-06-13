@@ -1,0 +1,17 @@
+#!/usr/bin/env ion
+
+echo "Install npm module for SpaceVim"
+echo "  for layer markdown"
+npm -g install remark
+npm -g install remark-cli
+npm -g install remark-stringify
+npm -g install remark-frontmatter
+npm -g install wcwidth
+echo "  for layer lang#javascript"
+npm install -g js-beautify
+
+echo "  for layer lang#typescript"
+npm install -g tslint
+
+echo " layer lang#lua"
+sudo apt install lua5.3

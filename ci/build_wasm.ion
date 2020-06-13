@@ -1,0 +1,39 @@
+#!/usr/bin/env ion
+
+set -eu
+
+# Pre-requisites:
+rustup target add wasm32-unknown-unknown
+
+let wasm_version =  $(wasm-bindgen --version) 
+
+echo &wasm_version
+
+if $len(wasm_version)  == 0
+	cargo clean
+	cargo install -f wasm-bindgen-cli
+	cargo update
+end
+
+# BUILD=debug
+let build=release
+
+# Clear output from old stuff:
+if test -D "docs/*.wasm" 
+	rm -rf docs/*.wasm
+
+let d = dirs
+
+echo $d
+
+
+echo "Build rust:"
+cargo build --release -p example_wasm --target wasm32-unknown-unknown
+
+echo "Generate JS bindings for wasm:"
+let dir    =  ${PWD##*/}
+let name   =  "example_wasm.wasm"
+let target =  "target/wasm32-unknown-unknown/$build/$TARGET_NAME"
+wasm-bindgen  --out-dir docs --no-modules --no-typescript
+
+open http://localhost:8888
