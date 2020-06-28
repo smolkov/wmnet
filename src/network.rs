@@ -14,11 +14,8 @@ use std::path::{Path, PathBuf};
 pub const NETDIR: &'static str = "net";
 pub const INTERVAL: &'static str = "refresh_interval";
 pub const IFACE: &'static str = "iface";
-pub const WPACFG: &'static str = ".wpa.conf";
 pub const ADDRESS: &'static str = "address";
 pub const STATE: &'static str = "state";
-pub const WPASSID: &'static str = ".wpassid";
-pub const WPAPASS: &'static str = ".wpapass";
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum State {
@@ -77,57 +74,6 @@ pub struct NetStatus {
     pub info: NetInfo,
 }
 
-pub trait Wpa: Class {
-    fn find_iface(&self) -> String {
-        "wlp2s0".to_owned()
-    }
-    fn check(&self) -> Result<()> {
-        if cfg!(target_os = "linux") && !which::which("wpa_passphrase").is_ok() {
-            std::process::Command::new("apt")
-                .arg("install")
-                .arg("wpasupplicant")
-                .output()?;
-        }
-        let cfg = self.path().join(WPACFG);
-        if !cfg.is_file() {
-            self.credentials("wqms", "SeiBereit")?;
-        }
-        Ok(())
-    }
-    fn wpassid(&self) -> String {
-        fs::read_to_string(self.path().join(WPASSID)).unwrap_or("wqms".to_owned())
-    }
-    fn wpapass(&self) -> String {
-        fs::read_to_string(self.path().join(WPAPASS)).unwrap_or("SeiBereit".to_owned())
-    }
-    fn credentials(&self, ssid: &str, password: &str) -> Result<()> {
-        fs::write(self.path().join(WPASSID), ssid.as_bytes())?;
-        fs::write(self.path().join(WPAPASS), password.as_bytes())?;
-        let output = std::process::Command::new("wpa_passphrase")
-            .arg(ssid)
-            .arg(password)
-            .output()?;
-        fs::write(self.path().join(".wpa.conf"), output.stdout)?;
-        Ok(())
-    }
-    fn interface(&self) -> String {
-        let interface = fs::read_to_string(self.path().join(IFACE)).unwrap_or(self.find_iface());
-        interface
-    }
-    fn reload(&self) -> Result<()> {
-        self.check()?;
-        std::process::Command::new("wpa_supplicant")
-            .current_dir(&self.path())
-            .arg("-B")
-            .arg("-i")
-            .arg(&self.interface())
-            .arg("-c")
-            .arg(WPACFG)
-            .spawn()?;
-        Ok(())
-    }
-}
-
 pub struct Network {
     path: PathBuf,
 }
@@ -138,7 +84,6 @@ impl Class for Network {
     }
 }
 impl Property for Network {}
-impl Wpa for Network {}
 // impl Lan for Network {}
 
 impl Network {

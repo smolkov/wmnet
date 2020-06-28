@@ -8,18 +8,27 @@ use std::collections::HashMap;
 use std::fs;
 // use std::fs::FileType;
 // use std::io::prelude::*;
+use chrono::{DateTime, Utc};
+// use std::fs::File;
+// use std::io::prelude::*;
+// use std::io::BufWriter;
 use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
-use std::time::SystemTime;
-
-use chrono::{DateTime, Utc};
 use std::sync::Mutex;
+use std::time::SystemTime;
+const MEASUREMENTS: &str = "measurments";
+const VALUE: &str = "value";
+const AVERAGE_INTERVAL: &str = "average_interval";
+const MEASUREMENT_INTERVAL: &str = "measurement_interval";
+const OUTLIERS: &str = "outliers";
+const MAXCV: &str = "maxcv";
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ChanState {
-    name: String,
-    unit: String,
-    data: Vec<f32>,
+    pub name: String,
+    pub unit: String,
+    pub value: f32,
+    pub data: Vec<f32>,
     start: Option<SystemTime>,
     last: Option<SystemTime>,
     mean: Option<f64>,
@@ -32,6 +41,7 @@ impl ChanState {
             name: name.to_owned(),
             unit: "--".to_owned(),
             data: Vec::new(),
+            value: 0.0,
             start: None,
             last: None,
             mean: None,
@@ -80,16 +90,12 @@ pub trait Chan: Class {
     const NUMBER: u16 = 0;
     // const NAME: &'static str = "chan";
     // const META: &'static str = "channels";
-    const DATAS: &'static str = "datas";
+    const DATAS: &'static str = "datas.csv";
     /// get channel value
-    fn value(&self) -> Option<f32> {
-        if let Ok(value) = fs::read_to_string(self.path().join("value")) {
-            if let Ok(v) = value.parse::<f32>() {
-                return Some(v);
-            }
-        }
-        None
+    fn value(&self) -> String {
+        fs::read_to_string(self.path().join(VALUE)).unwrap_or("nil".to_owned())
     }
+
     fn number(&self) -> u16 {
         let path = self.path().join("number");
         if !path.is_file() {
@@ -104,25 +110,92 @@ pub trait Chan: Class {
         }
         0
     }
+    /// Average interval
+    /// default 60 seconds
+    fn average_interval(&self) -> std::time::Duration {
+        if let Ok(sec) = fs::read_to_string(self.path().join(AVERAGE_INTERVAL)) {
+            if let Ok(sec) = sec.parse::<u64>() {
+                return std::time::Duration::from_secs(sec);
+            }
+        }
+        std::time::Duration::from_secs(60)
+    }
+    /// Measurement interval
+    /// default 1000 milliseconds
+    fn measurement_interval(&self) -> std::time::Duration {
+        if let Ok(millis) = fs::read_to_string(self.path().join(MEASUREMENT_INTERVAL)) {
+            if let Ok(millis) = millis.parse::<u64>() {
+                return std::time::Duration::from_millis(millis);
+            }
+        }
+        std::time::Duration::from_millis(1000)
+    }
+    /// Outliers
+    /// default 0
+    fn outliers(&self) -> u16 {
+        if let Ok(outliers) = fs::read_to_string(&self.path().join("outliers")) {
+            if let Ok(outliers) = outliers.parse::<u16>() {
+                return outliers;
+            }
+        }
+        0
+    }
+    /// Max CV
+    /// default :2.5
+    fn maxcv(&self) -> f32 {
+        if let Ok(maxcv) = fs::read_to_string(self.path().join(MAXCV)) {
+            if let Ok(maxcv) = maxcv.parse::<f32>() {
+                return maxcv;
+            }
+        }
+        2.5
+    }
     fn unit(&self) -> String {
         fs::read_to_string(self.path().join("unit")).unwrap_or("--".to_owned())
     }
     /// set channel value
     fn set_value(&self, value: f32) -> Result<()> {
-        fs::write(self.path().join("value"), format!("{}", value).as_bytes())?;
+        fs::write(self.path().join(VALUE), format!("{}", value).as_bytes())?;
         Ok(())
     }
+    /// change unit
     fn set_unit(&self, unit: &str) -> Result<()> {
         fs::write(self.path().join("unit"), unit.as_bytes())?;
+        Ok(())
+    }
+    /// change average interval value
+    fn set_average_interval(&self, seconds: u64) -> Result<()> {
+        fs::write(
+            self.path().join(AVERAGE_INTERVAL),
+            format!("{}", seconds).as_bytes(),
+        )?;
+        Ok(())
+    }
+    /// change measurement interval value
+    fn set_measurement_interval(&self, millis: u64) -> Result<()> {
+        fs::write(
+            self.path().join(MEASUREMENT_INTERVAL),
+            format!("{}", millis).as_bytes(),
+        )?;
+        Ok(())
+    }
+    /// change outliers counter
+    fn set_outliers(&self, outliers: u16) -> Result<()> {
+        fs::write(
+            self.path().join(OUTLIERS),
+            format!("{}", outliers).as_bytes(),
+        )?;
+        Ok(())
+    }
+    /// change max cv
+    fn set_maxcv(&self, maxcv: f32) -> Result<()> {
+        fs::write(self.path().join(MAXCV), format!("{}", maxcv).as_bytes())?;
         Ok(())
     }
     fn info(&self) -> ShortInfo {
         let label = self.label();
         let unit = self.unit();
-        let value = match self.value() {
-            Some(val) => format!("{}", val),
-            None => "--".to_owned(),
-        };
+        let value = self.value();
         ShortInfo { label, unit, value }
     }
     fn data(&self) -> Vec<Data> {
@@ -136,19 +209,32 @@ pub trait Chan: Class {
         }
         signal
     }
-    fn push_data(&self, signal: f32) -> Result<()> {
-        let time = fs::metadata(Self::DATAS)?.created()?.elapsed().unwrap();
-        let mut wtr = csv::Writer::from_path(&self.path().join(Self::DATAS)).unwrap();
-        wtr.serialize(Data {
-            time: time.as_secs(),
-            value: signal,
-        })
-        .unwrap();
-        wtr.flush().unwrap();
+    fn push_data(&self, value: f32) -> Result<()> {
+        let path = self.path().join("data");
+        log::info!("{} push new value", self.path().display());
+        let file = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&path)?;
+
+        let time = fs::metadata(&path)?.created()?.elapsed().unwrap();
+        let buffer = std::io::LineWriter::new(file);
+        let mut wtr = csv::Writer::from_writer(buffer);
+        //TODO: csv fehler fur Error implementieren.
+        let data = Data {
+            time: time.as_millis() as u64,
+            value: value,
+        };
+        if let Err(e) = wtr.serialize(data) {
+            log::error!("CHANNEL[{}] serialize data - {}", self.path().display(), e);
+        } else if let Err(e) = wtr.flush() {
+            log::error!("CHANNEL[{}] write data - {}", self.path().display(), e);
+        };
         Ok(())
     }
-    fn counts(&self) -> u32 {
-        if let Ok(count) = fs::read_to_string(self.path().join("count")) {
+    fn measurements(&self) -> u32 {
+        if let Ok(count) = fs::read_to_string(self.path().join(MEASUREMENTS)) {
             if let Ok(c) = count.parse::<u32>() {
                 return c;
             }
@@ -160,6 +246,10 @@ pub trait Chan: Class {
         if !history.is_dir() {
             fs::create_dir_all(&history)?;
         }
+        if !path.is_file() {
+            log::warn!("arhived file is not exist {}", path.display());
+            return Ok(());
+        }
         let name = path
             .file_name()
             .unwrap()
@@ -170,7 +260,7 @@ pub trait Chan: Class {
         let history_path = history.join(format!(
             "{}-{}-{}",
             now.format("%Y%m%d%H%M"),
-            self.counts(),
+            self.measurements(),
             name
         ));
         fs::copy(&path, &history_path)?; // Copy foo.txt to bar.txt
@@ -179,26 +269,33 @@ pub trait Chan: Class {
     }
     fn next(&self) -> Result<()> {
         let datas = self.path().join(Self::DATAS);
+        println!("next measurement in {}", self.path().display());
         fs::write(
-            self.path().join("count"),
-            format!("{}", self.counts()).as_bytes(),
+            self.path().join(MEASUREMENTS),
+            format!("{}", self.measurements()).as_bytes(),
         )?;
-        self.archive(&datas)?;
+        if datas.is_file() {
+            self.archive(&datas)?;
+        }
         fs::File::create(&datas)?;
         Ok(())
     }
-    fn calculate(&self) -> Result<()> {
-        let datas = self.data();
-        let mut sum: f32 = 0.0;
-        for row in datas.as_slice() {
-            sum = sum + row.value;
+    fn calculate(&self, data: &Vec<f32>) -> Result<()> {
+        if data.len() == 0 {
+            fs::write(self.path().join(VALUE), "nul".as_bytes())?;
+            return Ok(());
         }
-        let count = match datas.len() {
+        let mut sum: f32 = 0.0;
+        for value in data.as_slice() {
+            sum = sum + value;
+        }
+        let count = match data.len() {
             positive if positive > 0 => positive,
             _ => 1,
         };
         let mean = sum / count as f32;
         let value = mean;
+        // self.push_data(data)?;
         self.set_value(value)?;
         Ok(())
     }
@@ -307,10 +404,28 @@ impl Channels {
         fs::remove_file(link_path)?;
         Ok(())
     }
+    pub fn measurements(&self) -> u32 {
+        let path = self.path().join(MEASUREMENTS);
+        if !path.is_file() {
+            if let Err(e) = fs::write(&path, format!("{}", 0).as_bytes()) {
+                log::error!("CHANNELS[{}]: measurements number - {}", path.display(), e);
+            }
+        }
+        if let Ok(number) = fs::read_to_string(&path) {
+            if let Ok(n) = number.parse::<u32>() {
+                return n;
+            }
+        }
+        0
+    }
     pub fn next_measurement(&self) -> Result<()> {
         for ch in self.list()? {
             ch.next()?;
         }
+        fs::write(
+            self.path().join(MEASUREMENTS),
+            format!("{}", self.measurements() + 1).as_bytes(),
+        )?;
         Ok(())
     }
 }

@@ -1,65 +1,38 @@
-#![feature(proc_macro_hygiene, decl_macro, never_type)]
+use tide::{Body, Request, Response, StatusCode};
+mod setting;
+mod wifi;
+// use wifi::Credent;
 
-mod catch;
-mod gpio;
-// mod graphql;
-mod chan;
-mod db;
-mod msg;
-mod net;
-mod prop;
-mod web;
-// use std::fs::File;
-// use std::io::LineWriter;
-// use std::io;;
-// use std::io::prelude::*;
-use wqms::Result;
-// use std::path::{PathBuf,Path};
-/// serve
-// pub fn serve(args: &Args, opt: &Serve) -> Result<()> {
-// let ws = automata::open();
-// serve::start(ws);
-// Ok(())
-// }
-// use db::SqliteConn;
-// use rocket::request::Request;
-// use rocket::response::content;
-use rocket::{catchers, routes};
-use rocket_contrib::{serve::StaticFiles, templates::Template};
-// use wqms::cli::*;
-// use tera::Context;
-
-// use rocket_contrib::{templates::Template, serve::StaticFiles};
-// use rocket::State;
-// use serde_json::json;
-// use serde::{Serialize};
-// use rocket_include_tera::{tera_resources_initialize, tera_response, TeraResponse};
-
-fn main() -> Result<()> {
-    let ws = wqms::ws::setup()?;
-    let web = ws.web();
-    log::info!("✨ May your hopes and dreams become reality ✨");
-    rocket::ignite()
-        .mount("/", StaticFiles::from(web.www().as_path()))
-        // .mount("/", routes![web::index])
-        // .mount("/tera", StaticFiles::from("templates/tera/"))
-        .mount("/api/chan", routes![chan::list, chan::get])
-        .mount("/api/prop", routes![prop::list, prop::set, prop::get])
-        .mount("/api/net", routes![net::status, net::wpa_new, net::wpa])
-        .mount("/api/gpio", routes![gpio::status])
-        .mount("/api/msg", routes![msg::get, msg::create])
-        .attach(Template::fairing())
-        .manage(ws)
-        .register(catchers![
-            catch::not_found,
-            catch::internal_server_error,
-            catch::unprocessable_entity
-        ])
-        .launch();
-    // println!("");
-    // match args.commands() {
-    // Cmd::Init(opt) => setup(&args, &opt)?,
-    // Cmd::Serve(opt) => serve(&args, &opt)?,
-    // };
+/// firebase
+pub fn channels() -> tide::Server<()> {
+    let mut api = tide::new();
+    api.at("/").get(|_| async {
+        let channels = wqms::ws::open().channels();
+        let infos = channels.list_info().unwrap();
+        let mut res = Response::new(200);
+        res.set_body(Body::from_json(&infos)?);
+        Ok(res)
+    });
+    api.at("/").post(|_| async { Ok("Goodbye, world") });
+    api
+}
+// use wqms::Workspace;
+#[async_std::main]
+async fn main() -> Result<(), std::io::Error> {
+    tide::log::start();
+    let _ = wqms::ws::setup().unwrap();
+    let mut app = tide::new();
+    app.at("/static").serve_dir("/home/sascha/.wqms/web/www/")?;
+    app.at("/api/wifi").nest(wifi::api());
+    app.at("/api/firebase").nest(setting::firebase());
+    app.at("/api/stats").nest(setting::statistic());
+    app.at("/api/channel").nest(channels());
+    app.listen("127.0.0.1:8080").await?;
     Ok(())
+}
+
+pub async fn not_found(_req: Request<()>) -> tide::Result {
+    let res = Response::new(StatusCode::NotFound);
+    // res.render_html(|o| Ok(templates::notfound(o)?))?;
+    Ok(res)
 }

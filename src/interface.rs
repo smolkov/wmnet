@@ -83,3 +83,50 @@ pub trait Property: Class {
         Ok(())
     }
 }
+
+pub trait Statistic: Class {
+    const INTERVAL: u64 = 1000;
+    const AVERAGE: u64 = 60;
+    const OUTLIERS: u16 = 0;
+    const MAXCV: f32 = 2.5;
+    /// Average interval
+    /// default 60 seconds
+    fn average(&self) -> std::time::Duration {
+        if let Ok(sec) = fs::read_to_string(self.path().join("interval")) {
+            if let Ok(sec) = sec.parse::<u64>() {
+                return std::time::Duration::from_secs(sec);
+            }
+        }
+        std::time::Duration::from_secs(Self::AVERAGE)
+    }
+    /// Measurement interval
+    /// default 1000 milliseconds
+    fn interval(&self) -> std::time::Duration {
+        if let Ok(millis) = fs::read_to_string(self.path().join("average")) {
+            if let Ok(millis) = millis.parse::<u64>() {
+                return std::time::Duration::from_millis(millis);
+            }
+        }
+        std::time::Duration::from_millis(Self::INTERVAL)
+    }
+    /// Outliers
+    /// default 0
+    fn outliers(&self) -> u16 {
+        if let Ok(outliers) = fs::read_to_string(&self.path().join("outliers")) {
+            if let Ok(outliers) = outliers.parse::<u16>() {
+                return outliers;
+            }
+        }
+        Self::OUTLIERS
+    }
+    /// Max CV
+    /// default :2.5
+    fn maxcv(&self) -> f32 {
+        if let Ok(maxcv) = fs::read_to_string(self.path().join("maxcv")) {
+            if let Ok(maxcv) = maxcv.parse::<f32>() {
+                return maxcv;
+            }
+        }
+        Self::MAXCV
+    }
+}

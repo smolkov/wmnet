@@ -1,6 +1,8 @@
-# Collector
+# Collect Data
 
-## Channels
+## Nitritox
+
+`wqms-nitritox`
 
 ### TOX
 
@@ -11,6 +13,10 @@ Ausgabe RS232
 
 Nitritox
 Ausgabe RS232
+
+## JUMO
+
+`wqms-jumo`
 
 ### pH
 

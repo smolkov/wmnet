@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::Result;
-use crate::{channel::Channels, inky::Inky, network::Network, web::Web};
+use crate::{channel::Channels, network::Network, web::Web, wifi::Wifi};
 use git2::Repository;
 // use serde::{Deserialize, Serialize};
 // use std::fmt;
@@ -23,6 +23,18 @@ impl Class for Workspace {
 impl Property for Workspace {}
 
 impl Workspace {
+    pub fn canonicalize(&mut self) -> Result<()> {
+        if self.path.is_relative() {
+            if let Err(err) = self.path.canonicalize() {
+                log::error!(
+                    "workspace:{} need absolute path - {}",
+                    self.path.display(),
+                    err
+                );
+            }
+        }
+        Ok(())
+    }
     pub fn read_config(&self) -> Result<Config> {
         let cfg = Config::load(&self.path.join("config"))?;
         Ok(cfg)
@@ -48,42 +60,23 @@ impl Workspace {
     pub fn network(&self) -> Network {
         crate::network::open(self)
     }
-    pub fn inky(&self) -> Inky {
-        crate::inky::open(self)
+    pub fn wifi(&self) -> Wifi {
+        crate::wifi::open(self)
     }
 }
 
 pub fn setup() -> Result<Workspace> {
     let dir = crate::workdir();
-    log::info!("workspace[{}] setup", dir.display());
-    if dir.is_relative() {
-        if let Err(err) = dir.canonicalize() {
-            log::error!("workspace:{} need absolute path - {}", dir.display(), err);
-        }
-    }
-    let ws = Workspace {
+    let mut ws = Workspace {
         path: dir.to_path_buf(),
     };
+    crate::logger::setup(&ws)?;
+    log::info!("workspace[{}] setup", dir.display());
+    ws.canonicalize()?;
     if !ws.path.is_dir() {
         ws.setup()?;
-
-        // fs::create_dir_all(&ws.path)?;
         let config = Config::default();
         ws.write_config(&config)?;
-
-        // if let Err(err) = network::setup(&ws) {
-        //     log::error!("workspace[{}] setup network - {}", ws.path.display(), err);
-        // }
-        // if let Err(err) = web::setup(&ws) {
-        //     log::error!("workspace[{}] setup network - {}", ws.path.display(), err);
-        // }
-        // if let Err(err) = channel::setup(&ws) {
-        //     log::error!(
-        //         "workspace[{}] new channel superviser - {}",
-        //         ws.path.display(),
-        //         err
-        //     );
-        // }
         if let Err(err) = Repository::init(&ws.path) {
             log::error!("workspace[{}] init git error - {}", ws.path.display(), err)
         }
@@ -92,7 +85,16 @@ pub fn setup() -> Result<Workspace> {
     crate::channel::setup(&ws)?;
     log::info!("workspace[{}] setup network", dir.display());
     crate::network::setup(&ws)?;
-    crate::inky::setup(&ws)?;
+    log::info!("workspace[{}] setup wifi", dir.display());
+    crate::wifi::setup(&ws)?;
+    log::info!("workspace[{}] setup web", dir.display());
     crate::web::setup(&ws)?;
     Ok(ws)
+}
+
+pub fn open() -> Workspace {
+    let dir = crate::workdir();
+    Workspace {
+        path: dir.to_path_buf(),
+    }
 }

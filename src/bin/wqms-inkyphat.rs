@@ -19,11 +19,11 @@ use embedded_graphics::Drawing;
 
 // Font
 extern crate profont;
-use profont::{ProFont12Point, ProFont24Point, ProFont9Point};
+use profont::{ProFont10Point, ProFont12Point, ProFont18Point, ProFont9Point};
 
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use std::process::Command;
-use wqms::inky::*;
+use wqms::iface::*;
 use wqms::network;
 use wqms::Result;
 // use std::thread::sleep;
@@ -86,7 +86,6 @@ impl Args {
 #[paw::main]
 fn main(args: Args) -> Result<()> {
     let ws = wqms::ws::setup()?;
-    let inky = wqms::inky::open(&ws);
     let mut spi = Spidev::open(args.spi()).expect("SPI device");
     let options = SpidevOptions::new()
         .bits_per_word(8)
@@ -142,13 +141,18 @@ fn main(args: Args) -> Result<()> {
     let display = Display::new(controller, config);
     let mut display = GraphicDisplay::new(display, &mut black_buffer, &mut red_buffer);
     println!("Clear");
-    const VAL: i32 = 65;
-    const NAME: i32 = 16;
-    const X1: i32 = 1;
-    const Y1: i32 = 1;
-    const X2: i32 = 100;
-    const Y2: i32 = 45;
-    // const CORD: [(i32, i32); 4] = [(X1, Y2), (X2, Y2), (X1, Y2), (X2, Y2)];
+    const VAL: i32 = 35;
+    const NAME: i32 = 15;
+    const CORD: [(i32, i32); 8] = [
+        (1, 1),
+        (50, 1),
+        (100, 1),
+        (150, 1),
+        (1, 40),
+        (50, 40),
+        (100, 40),
+        (150, 40),
+    ];
 
     let (tx, rx) = std::sync::mpsc::channel();
     // let (tx, rx) = crossbeam_channel::unbounded();
@@ -165,7 +169,7 @@ fn main(args: Args) -> Result<()> {
     // Add a path to be watched. All files and directories at that path and
     // below will be monitored for changes.
     watcher
-        .watch(inky.path(), RecursiveMode::Recursive)
+        .watch(ws.rootdir(), RecursiveMode::Recursive)
         .unwrap();
 
     for res in rx {
@@ -173,93 +177,35 @@ fn main(args: Args) -> Result<()> {
             Ok(event) => {
                 println!("changed: {:?}", event);
                 display.reset(&mut delay).expect("error resetting display");
-                println!("Reset and initialised");
+                // println!("Reset and initialised");
                 display.clear(Color::White);
-
-                display.draw(
-                    ProFont24Point::render_str(" 350")
-                        .with_stroke(Some(Color::Red))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X1, Y1))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont12Point::render_str("TOC")
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X1 + VAL, Y1 + NAME))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont12Point::render_str("mg/l")
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X1 + VAL, Y1 + NAME))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont24Point::render_str("  85")
-                        .with_stroke(Some(Color::Red))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X2, Y1))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont12Point::render_str("TOX")
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X2 + VAL, Y1))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont12Point::render_str("%")
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X2 + VAL, Y1 + NAME))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont24Point::render_str(" 210")
-                        .with_stroke(Some(Color::Red))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X1, Y2))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont12Point::render_str("BOD")
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X1 + VAL, Y2))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont12Point::render_str("mg/l")
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X1 + VAL, Y2 + NAME))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont24Point::render_str(" 250")
-                        .with_stroke(Some(Color::Red))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X2, Y2))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont12Point::render_str("COD")
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X2 + VAL, Y2))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont12Point::render_str("mg/l")
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(X2 + VAL, Y2 + NAME))
-                        .into_iter(),
-                );
+                let chs = ws.channels().list()?;
+                for (index, ch) in chs.iter().enumerate() {
+                    if index < 8 {
+                        let info = ch.info();
+                        display.draw(
+                            ProFont12Point::render_str(info.value.as_str())
+                                .with_stroke(Some(Color::Red))
+                                .with_fill(Some(Color::White))
+                                .translate(Coord::new(CORD[index].0, CORD[index].1))
+                                .into_iter(),
+                        );
+                        display.draw(
+                            ProFont10Point::render_str(info.label.as_str())
+                                .with_stroke(Some(Color::Black))
+                                .with_fill(Some(Color::White))
+                                .translate(Coord::new(CORD[index].0 + VAL, CORD[index].1 + NAME))
+                                .into_iter(),
+                        );
+                        display.draw(
+                            ProFont10Point::render_str(info.label.as_str())
+                                .with_stroke(Some(Color::Black))
+                                .with_fill(Some(Color::White))
+                                .translate(Coord::new(CORD[index].0 + VAL, CORD[index].1 + NAME))
+                                .into_iter(),
+                        );
+                    }
+                }
                 display.draw(
                     ProFont9Point::render_str(network::hostname().as_str().trim())
                         .with_stroke(Some(Color::Black))
@@ -283,40 +229,4 @@ fn main(args: Args) -> Result<()> {
         }
     }
     Ok(())
-}
-
-// fn read_cpu_temp() -> Result<f64, io::Error> {
-//     fs::read_to_string("/sys/class/thermal/thermal_zone0/temp")?
-//         .trim()
-//         .parse::<i32>()
-//         .map(|temp| temp as f64 / 1000.)
-//         .map_err(|err| io::Error::new(io::ErrorKind::Other, err))
-// }
-
-fn read_uptime() -> Option<String> {
-    Command::new("uptime")
-        .arg("-p")
-        .output()
-        .ok()
-        .and_then(|output| {
-            if output.status.success() {
-                String::from_utf8(output.stdout).ok()
-            } else {
-                None
-            }
-        })
-}
-
-fn read_uname() -> Option<String> {
-    Command::new("uname")
-        .arg("-smr")
-        .output()
-        .ok()
-        .and_then(|output| {
-            if output.status.success() {
-                String::from_utf8(output.stdout).ok()
-            } else {
-                None
-            }
-        })
 }

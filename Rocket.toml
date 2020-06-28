@@ -3,7 +3,7 @@
 #  https://rocket.rs/v0.4/guide/configuration/#configuratio
 
 [global]
-template_dir = "templates/tera"
+template_dir = "static"
 
 [global.databases.sqlite_database]
 url = "db/db.sqlite" 

@@ -1,6 +1,7 @@
 use firebase_rs::*;
 use std::path::{Path, PathBuf};
 // use wqms::config::*;
+use chrono::{DateTime, Datelike, Utc};
 use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
 use wqms::iface::{Chan, Class};
@@ -67,7 +68,7 @@ fn main(args: Args) -> Result<()> {
     // get I2C device back
     let ws = wqms::ws::setup()?;
     let channels = ws.channels();
-    let fb = wqms::fb::setup(&ws)?;
+    // let fb = wqms::fb::setup(&ws)?;
 
     let ctrl_c_events = ctrl_channel().expect("create ctrl c signal failed");
     let interval = args.interval();
@@ -77,34 +78,31 @@ fn main(args: Args) -> Result<()> {
         channels.path().display(),
         interval.as_secs(),
     );
-    let station: &'static str = "afrika1";
-    let url: &'static str = "https://wqms-fb.firebaseio.com";
-    let api: &'static str = "1:276128813099:web:a190a252dcf7f1dc00da6e";
+    let mut now: DateTime<Utc> = Utc::now();
+    let mut path = channels
+        .path()
+        .join(format!("{}.csv", now.format("%Y%m%d%H%M")));
+    let mut wtr = csv::Writer::from_path(path).unwrap();
+    let tox = channels.new_channel("TOX", "%")?;
+    let dos = channels.new_channel("DOS", "mg/l")?;
+    let jumo_ph = channels.new_channel("ph", "pH")?;
+    let jumo_ec = channels.new_channel("ec", "mg/l")?;
+    let jumo_orp = channels.new_channel("orp", "mg/l")?;
+    let jumo_dos = channels.new_channel("dos", "mh/l")?;
+    let tur = channels.new_channel("trubung", "%")?;
     // https://<DATABASE_NAME>.firebaseio.com/users/ada/name.json?access_token=<ACCESS_TOKEN>
     loop {
         select! {
             recv(ticks) -> _ => {
-                log::info!("Collect data to firebase");
-                match Firebase::auth(url, api) {
-                    Ok(fb) => {
-                        // let messages =fb.at("/api/messages").ok().unwrap();
-                        // let res = messages.push("{\"name\":\"David\",\"message\":\"Hello from Rust\"}").ok().unwrap();
-                        // println!("Response body: {:?}", res.body);
-                        // println!("Response code: {:?}", res.code);
-                        let users = fb.at("users").unwrap();
-                        let res = users.push("{\"username\": \"test\"}").unwrap();
-                        // let data = fb.at(station).unwrap();
-                        // let res = data.push("{\"timestamp\": \"2020.06.26 16:15:25\",\"status\": 0, \"bod\": 0, \"tox\": 0}").unwrap();
-                        println!("Response body: {:?}", res.body);
-                        println!("Response code: {:?}", res.code);
-                    },
-                    Err(e) => {
-                        log::error!("Collect data to firebase {} - {:?}",fb.url(),e);
-                    }
+                log::info!("Collect data to csv");
+                if let Err(e) = wtr.write_record(&[&format!("{}",Utc::now().format("%Y.%m.%d-%H:%M:%S")),&tox.value(), &dos.value(), &jumo_ph.value(),&jumo_ec.value(),&jumo_orp.value(),&jumo_dos.value(),&tur.value()]) {
+                    log::error!("Collect csv data - {}",e);
                 }
-
-                if args.debug() {
-                } else {
+                wtr.flush()?;
+                if Utc::now().day() != now.day() {
+                    path = channels.path().join(format!( "{}.csv", Utc::now().format("%Y%m%d%H%M")));
+                    wtr = csv::Writer::from_path(path).unwrap();
+                    now = Utc::now();
                 }
             }
             recv(ctrl_c_events) -> _ => {
