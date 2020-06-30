@@ -37,7 +37,7 @@ pub fn workdir() -> PathBuf {
 
 pub fn setup() -> Result<Workspace> {
     let workspace = ws::setup()?;
-    store::setup(&workspace)?;
+    // store::setup(&workspace)?;
     Ok(workspace)
 }
 

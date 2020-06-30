@@ -34,12 +34,12 @@ impl Class for Wifi {
 
 pub trait Wpa: Class {
     fn check(&self) -> Result<()> {
-        if cfg!(target_os = "linux") && !which::which("wpa_passphrase").is_ok() {
-            std::process::Command::new("apt")
-                .arg("install")
-                .arg("wpasupplicant")
-                .output()?;
-        }
+        // if cfg!(target_os = "linux") && !which::which("wpa_passphrase").is_ok() {
+        // std::process::Command::new("apt")
+        // .arg("install")
+        // .arg("wpasupplicant")
+        // .output()?;
+        // }
         Ok(())
     }
     fn ssid(&self) -> String {

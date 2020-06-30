@@ -14,8 +14,8 @@ use std::num::ParseIntError;
 pub enum Error {
     #[fail(display = "io error - {}", err)]
     IOError { err: io::Error },
-    #[fail(display = "db sled error - {}", err)]
-    SledError { err: sled::Error },
+    // #[fail(display = "db sled error - {}", err)]
+    // SledError { err: sled::Error },
     #[fail(display = "bad toml error - {}", err)]
     BadTomlData { err: toml::de::Error },
     #[fail(display = "serialize toml error - {}", err)]
@@ -53,11 +53,11 @@ impl From<io::Error> for Error {
         Error::IOError { err: kind }
     }
 }
-impl From<sled::Error> for Error {
-    fn from(error: sled::Error) -> Error {
-        Error::SledError { err: error }
-    }
-}
+// impl From<sled::Error> for Error {
+//     fn from(error: sled::Error) -> Error {
+//         Error::SledError { err: error }
+//     }
+// }
 
 impl From<fmt::Error> for Error {
     fn from(kind: fmt::Error) -> Error {

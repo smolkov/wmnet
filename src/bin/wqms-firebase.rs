@@ -1,4 +1,4 @@
-use firebase_rs::*;
+// use firebase_rs::*;
 use std::path::{Path, PathBuf};
 // use wqms::config::*;
 use serde::{Deserialize, Serialize};
@@ -85,24 +85,23 @@ fn main(args: Args) -> Result<()> {
         select! {
             recv(ticks) -> _ => {
                 log::info!("Collect data to firebase");
-                match Firebase::auth(url, api) {
-                    Ok(fb) => {
+                // match Firebase::auth(url, api) {
+                    // Ok(fb) => {
                         // let messages =fb.at("/api/messages").ok().unwrap();
                         // let res = messages.push("{\"name\":\"David\",\"message\":\"Hello from Rust\"}").ok().unwrap();
                         // println!("Response body: {:?}", res.body);
                         // println!("Response code: {:?}", res.code);
-                        let users = fb.at("users").unwrap();
-                        let res = users.push("{\"username\": \"test\"}").unwrap();
+                        // let users = fb.at("users").unwrap();
+                        // let res = users.push("{\"username\": \"test\"}").unwrap();
                         // let data = fb.at(station).unwrap();
                         // let res = data.push("{\"timestamp\": \"2020.06.26 16:15:25\",\"status\": 0, \"bod\": 0, \"tox\": 0}").unwrap();
-                        println!("Response body: {:?}", res.body);
-                        println!("Response code: {:?}", res.code);
-                    },
-                    Err(e) => {
-                        log::error!("Collect data to firebase {} - {:?}",fb.url(),e);
-                    }
-                }
-
+                        // println!("Response body: {:?}", res.body);
+                        // println!("Response code: {:?}", res.code);
+                    // },
+                    // Err(e) => {
+                        // log::error!("Collect data to firebase {} - {:?}",fb.url(),e);
+                    // }
+                // }
                 if args.debug() {
                 } else {
                 }

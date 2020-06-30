@@ -282,7 +282,7 @@ pub trait Chan: Class {
     }
     fn calculate(&self, data: &Vec<f32>) -> Result<()> {
         if data.len() == 0 {
-            fs::write(self.path().join(VALUE), "nul".as_bytes())?;
+            fs::write(self.path().join(VALUE), "nil".as_bytes())?;
             return Ok(());
         }
         let mut sum: f32 = 0.0;

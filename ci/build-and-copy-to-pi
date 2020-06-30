@@ -2,7 +2,8 @@
 
 set -e
 
-BINARY=target/arm-unknown-linux-gnueabi/release/iotnode
-cargo build --release --target arm-unknown-linux-gnueabihf
+BINARY=target/arm-unknown-linux-gnueabi/release/lca2019
+
+cross build --target=arm-unknown-linux-gnueabi --release
 arm-linux-gnueabihf-strip "$BINARY"
-rsync -av "$BINARY" pi@192.168.86.36:
+rsync -av "$BINARY" pi@192.168.0.7:

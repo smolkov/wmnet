@@ -19,10 +19,10 @@ use embedded_graphics::Drawing;
 
 // Font
 extern crate profont;
-use profont::{ProFont10Point, ProFont12Point, ProFont18Point, ProFont9Point};
+use profont::{ProFont10Point, ProFont12Point, ProFont9Point};
 
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
-use std::process::Command;
+// use std::process::Command;
 use wqms::iface::*;
 use wqms::network;
 use wqms::Result;
