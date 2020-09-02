@@ -66,7 +66,7 @@ fn main(args: Args) -> Result<()> {
     // println!("{:?}", &res);
     // get I2C device back
     let ws = wqms::ws::setup()?;
-    let channels = ws.channels();
+    let channels = ws.channels()?;
     let fb = wqms::fb::setup(&ws)?;
 
     let ctrl_c_events = ctrl_channel().expect("create ctrl c signal failed");

@@ -11,7 +11,6 @@ use crate::util::name_from_path;
 use std::fs;
 use std::path::{Path, PathBuf};
 // use systemstat::{Platform, System};
-/// IPFILE name
 const DIR: &'static str = "wifi";
 // const INTERVAL: &'static str = "refresh_interval";
 const IFACE: &'static str = "iface";
@@ -91,7 +90,16 @@ pub trait Wpa: Class {
             .spawn()?;
         Ok(())
     }
+    fn scan_networks(&self) -> Result<()> {
+        let output = std::process::Command::new("iwlist")
+            .arg(&self.interface())
+            .arg("scan")
+            .output()?;
+        println!("{}", String::from_utf8_lossy(&output.stdout));
+        Ok(())
+    }
 }
+
 // impl Lan for Network {}
 impl Wpa for Wifi {}
 

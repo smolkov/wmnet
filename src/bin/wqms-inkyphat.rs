@@ -19,13 +19,15 @@ use embedded_graphics::Drawing;
 
 // Font
 extern crate profont;
-use profont::{ProFont10Point, ProFont12Point, ProFont9Point};
+use profont::{ProFont10Point, ProFont12Point,ProFont18Point, ProFont9Point};
 
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 // use std::process::Command;
 use wqms::iface::*;
 use wqms::network;
 use wqms::Result;
+use wqms::channel::ShortInfo;
+use wqms::ws::Workspace;
+
 // use std::thread::sleep;
 // use std::{fs, io};
 
@@ -61,6 +63,9 @@ const LUT: [u8; 70] = [
 #[derive(Debug, StructOpt)]
 #[structopt(name = "ndir", about = "🧰edinburgh sensor interface interface usage.")]
 pub struct Args {
+     ///🗁 simulate nitritox measurement
+     #[structopt(short = "d", long = "debug")]
+     debug: bool,
     ///🗁 sensor working directory
     #[structopt(short = "d", long = "dir", default_value = ".wqms")]
     dir: PathBuf,
@@ -85,7 +90,7 @@ impl Args {
 
 #[paw::main]
 fn main(args: Args) -> Result<()> {
-    let ws = wqms::ws::setup()?;
+    let ws = wqms::ws::root();
     let mut spi = Spidev::open(args.spi()).expect("SPI device");
     let options = SpidevOptions::new()
         .bits_per_word(8)
@@ -120,13 +125,7 @@ fn main(args: Args) -> Result<()> {
         .set_direction(Direction::Out)
         .expect("reset Direction");
     reset.set_value(1).expect("reset Value set to 1");
-    println!("Pins configured");
-
-    // Initialise display controller
-    let mut delay = Delay {};
-
     let controller = ssd1675::Interface::new(spi, cs, busy, dc, reset);
-
     let mut black_buffer = [0u8; ROWS as usize * COLS as usize / 8];
     let mut red_buffer = [0u8; ROWS as usize * COLS as usize / 8];
     let config = Builder::new()
@@ -140,9 +139,7 @@ fn main(args: Args) -> Result<()> {
         .expect("invalid configuration");
     let display = Display::new(controller, config);
     let mut display = GraphicDisplay::new(display, &mut black_buffer, &mut red_buffer);
-    println!("Clear");
-    const VAL: i32 = 35;
-    const NAME: i32 = 15;
+    const VAL: i32 = 20;
     const CORD: [(i32, i32); 8] = [
         (1, 1),
         (50, 1),
@@ -153,80 +150,46 @@ fn main(args: Args) -> Result<()> {
         (100, 40),
         (150, 40),
     ];
-
-    let (tx, rx) = std::sync::mpsc::channel();
-    // let (tx, rx) = crossbeam_channel::unbounded();
-    // let mut watcher: RecommendedWatcher = Watcher::with_channel(tx, Duration::from_secs(2))?;
-
-    // for event in rx.iter() {
-    // ...
-    // }
-    // Automatically select the best implementation for your platform.
-    // You can also access each implementation directly e.g. INotifyWatcher.
-    let mut watcher: RecommendedWatcher =
-        Watcher::new_immediate(move |res| tx.send(res).unwrap()).unwrap();
-
-    // Add a path to be watched. All files and directories at that path and
-    // below will be monitored for changes.
-    watcher
-        .watch(ws.rootdir(), RecursiveMode::Recursive)
-        .unwrap();
-
-    for res in rx {
-        match res {
-            Ok(event) => {
-                println!("changed: {:?}", event);
-                display.reset(&mut delay).expect("error resetting display");
-                // println!("Reset and initialised");
-                display.clear(Color::White);
-                let chs = ws.channels().list()?;
-                for (index, ch) in chs.iter().enumerate() {
-                    if index < 8 {
-                        let info = ch.info();
-                        display.draw(
-                            ProFont12Point::render_str(info.value.as_str())
-                                .with_stroke(Some(Color::Red))
-                                .with_fill(Some(Color::White))
-                                .translate(Coord::new(CORD[index].0, CORD[index].1))
-                                .into_iter(),
-                        );
-                        display.draw(
-                            ProFont10Point::render_str(info.label.as_str())
-                                .with_stroke(Some(Color::Black))
-                                .with_fill(Some(Color::White))
-                                .translate(Coord::new(CORD[index].0 + VAL, CORD[index].1 + NAME))
-                                .into_iter(),
-                        );
-                        display.draw(
-                            ProFont10Point::render_str(info.label.as_str())
-                                .with_stroke(Some(Color::Black))
-                                .with_fill(Some(Color::White))
-                                .translate(Coord::new(CORD[index].0 + VAL, CORD[index].1 + NAME))
-                                .into_iter(),
-                        );
-                    }
-                }
-                display.draw(
-                    ProFont9Point::render_str(network::hostname().as_str().trim())
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(1, 93))
-                        .into_iter(),
-                );
-                display.draw(
-                    ProFont9Point::render_str(format!("{}", network::state()).trim())
-                        .with_stroke(Some(Color::Black))
-                        .with_fill(Some(Color::White))
-                        .translate(Coord::new(1, 84))
-                        .into_iter(),
-                );
-                display.update(&mut delay).expect("error updating display");
-                println!("Update...");
-                println!("Finished - going to sleep");
-                display.deep_sleep().unwrap();
-            }
-            Err(e) => println!("watch error: {:?}", e),
+    let mut delay = Delay {};
+    display.reset(&mut delay).expect("error resetting display");
+    display.clear(Color::White);
+    // Initialise display controller
+    let channels = ws.channels()?;
+    for (index, ch) in channels.list.iter().enumerate() {
+        if index < 8 {
+            display.draw(
+                ProFont18Point::render_str(ch.value().as_str())
+                    .with_stroke(Some(Color::Red))
+                    .with_fill(Some(Color::White))
+                    .translate(Coord::new(CORD[index].0, CORD[index].1))
+                    .into_iter(),
+            );
+            display.draw(
+                ProFont10Point::render_str(ch.label().as_str())
+                    .with_stroke(Some(Color::Black))
+                    .with_fill(Some(Color::White))
+                    .translate(Coord::new(CORD[index].0, CORD[index].1 + VAL))
+                    .into_iter(),
+            );
         }
     }
+    display.draw(
+        ProFont9Point::render_str(format!("status:{}", network::state()).trim())
+            .with_stroke(Some(Color::Red))
+            .with_fill(Some(Color::White))
+            .translate(Coord::new(10, 83))
+            .into_iter(),
+    );
+    display.draw(
+        ProFont9Point::render_str(format!("IP:{}", network::hostname()).trim())
+            .with_stroke(Some(Color::Black))
+            .with_fill(Some(Color::White))
+            .translate(Coord::new(10, 93))
+            .into_iter(),
+    );
+    display.update(&mut delay).expect("error updating display");
+    println!("Update...");
+    println!("Finished - going to sleep");
+    display.deep_sleep().unwrap();
     Ok(())
 }

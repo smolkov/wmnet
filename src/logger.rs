@@ -3,8 +3,7 @@ use crate::Result;
 use crate::Workspace;
 use crate::{Class, Property};
 // use std::fs;
-use std::{env, fmt};
-
+use std::{fmt};
 use log::{error, warn};
 use yansi::Paint;
 
@@ -220,50 +219,12 @@ impl Class for Logger {
 }
 impl Property for Logger {}
 
-pub fn setup(ws: &Workspace) -> Result<()> {
-    let path = ws.rootdir().join("log");
-    let logger = Logger { path };
-    if !logger.path.is_dir() {
-        logger.setup()?;
-        logger.set("level", "debug")?;
-        logger.set("verbose", "true")?;
-    }
-    let level = logger.level();
-    let verbose = logger.verbose();
-    if level == LoggingLevel::Off {
-        return Ok(());
-    }
-
-    if !atty::is(atty::Stream::Stdout)
-        || (cfg!(windows) && !Paint::enable_windows_ascii())
-        || env::var_os(COLORS_ENV)
-            .map(|v| v == "0" || v == "off")
-            .unwrap_or(false)
-    {
-        Paint::disable();
-    }
-    push_max_level(level);
-    if let Err(e) = log::set_boxed_logger(Box::new(logger)) {
-        if verbose {
-            eprintln!("Logger failed to initialize: {}", e);
-        }
-        pop_max_level();
-    }
-    Ok(())
+pub fn setup(_ws: &Workspace,level:log::LevelFilter){
+    femme::with_level(level);
 }
-
-// Expose logging macros as (hidden) funcions for use by core/contrib codegen.
-macro_rules! external_log_function {
-    ($fn_name:ident: $macro_name:ident) => {
-        #[doc(hidden)]
-        #[inline(always)]
-        pub fn $fn_name(msg: &str) {
-            $macro_name!("{}", msg);
-        }
-    };
+pub fn debug() {
+    femme::with_level(log::LevelFilter::Debug);
 }
-
-external_log_function!(error: error);
-external_log_function!(error_: error_);
-external_log_function!(warn: warn);
-external_log_function!(warn_: warn_);
+pub fn trace() {
+    femme::with_level(log::LevelFilter::Trace);
+}

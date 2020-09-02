@@ -5,6 +5,7 @@ use ron;
 use std::fmt;
 use std::io;
 use toml;
+
 // use std::io::ErrorKind;
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
@@ -14,8 +15,12 @@ use std::num::ParseIntError;
 pub enum Error {
     #[fail(display = "io error - {}", err)]
     IOError { err: io::Error },
-    // #[fail(display = "db sled error - {}", err)]
-    // SledError { err: sled::Error },
+    #[fail(display = "redis error - {}", err)]
+    RedisError { err: redis::RedisError },
+    #[fail(display = "str utf8 error - {}", err)]
+    Utf8Error { err: std::str::Utf8Error },
+    #[fail(display = "bad json error - {}", err)]
+    BadJsonData { err: serde_json::Error },
     #[fail(display = "bad toml error - {}", err)]
     BadTomlData { err: toml::de::Error },
     #[fail(display = "serialize toml error - {}", err)]
@@ -34,6 +39,9 @@ pub enum Error {
     ConvertInt { err: std::num::ParseIntError },
     #[fail(display = "parse float error - {}", err)]
     ConvertFloat { err: ParseFloatError },
+    #[fail(display = "request error - {}", err)]
+    RequestError { err:  reqwest::Error },
+   
 }
 
 pub fn bad_workstation(msg: String) -> Error {
@@ -53,11 +61,17 @@ impl From<io::Error> for Error {
         Error::IOError { err: kind }
     }
 }
-// impl From<sled::Error> for Error {
-//     fn from(error: sled::Error) -> Error {
-//         Error::SledError { err: error }
-//     }
-// }
+impl From<std::str::Utf8Error> for Error {
+    fn from(err: std::str::Utf8Error) -> Self {
+        Error::Utf8Error { err }
+    }
+}
+
+impl From<redis::RedisError> for Error {
+    fn from(error: redis::RedisError) -> Error {
+        Error::RedisError { err: error }
+    }
+}
 
 impl From<fmt::Error> for Error {
     fn from(kind: fmt::Error) -> Error {
@@ -74,13 +88,16 @@ impl From<ParseIntError> for Error {
         Error::ConvertInt { err }
     }
 }
-
 impl From<ParseFloatError> for Error {
     fn from(err: ParseFloatError) -> Error {
         Error::ConvertFloat { err }
     }
 }
-
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        Error::BadJsonData { err }
+    }
+}
 impl From<toml::de::Error> for Error {
     fn from(err: toml::de::Error) -> Self {
         Error::BadTomlData { err }
@@ -89,5 +106,11 @@ impl From<toml::de::Error> for Error {
 impl From<toml::ser::Error> for Error {
     fn from(err: toml::ser::Error) -> Self {
         Error::SerializeTomlError { err }
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Self {
+        Error::RequestError { err }
     }
 }

@@ -32,6 +32,8 @@ impl Class for Settings {
 }
 impl Property for Settings {}
 
+
+
 pub fn setup(ws: &Workspace) -> Result<Settings> {
     let path = ws.rootdir().join(Settings::META);
     let settings = Settings {
@@ -42,3 +44,5 @@ pub fn setup(ws: &Workspace) -> Result<Settings> {
     }
     Ok(settings)
 }
+
+

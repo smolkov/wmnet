@@ -140,7 +140,7 @@ impl Network {
                 .as_str(),
         )
     }
-    pub fn get_address(&self) -> String {
+    pub fn address(&self) -> String {
         fs::read_to_string(self.path.join(ADDRESS)).unwrap_or("none".to_owned())
     }
 }
@@ -200,6 +200,14 @@ pub fn state() -> State {
         }
     }
 }
+
+pub fn online() -> bool {
+    state() == State::Online
+}
+pub fn ofline() -> bool {
+    state() == State::Offline
+}
+
 pub fn hostname() -> String {
     let hostname = match std::process::Command::new("hostname").arg("-i").output() {
         Ok(output) => String::from_utf8(output.stdout).unwrap_or("none".to_owned()),

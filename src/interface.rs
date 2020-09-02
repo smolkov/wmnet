@@ -10,18 +10,19 @@ pub trait ToDir {
     fn to_dir(self) -> PathBuf;
 }
 
+
 pub trait Class {
     const META: &'static str = "class";
     const UUID: &'static str = "nan";
-    const LABEL: &'static str = "--";
-    const DESC: &'static str = "--";
+    const LABEL: &'static str = "label";
+    const DESC: &'static str = "desk";
     /// path
     fn path(&self) -> &Path;
     fn label(&self) -> String {
         fs::read_to_string(self.path().join("label")).unwrap_or(Self::LABEL.to_owned())
     }
     fn set_label(&self, label: &str) -> Result<()> {
-        fs::write(self.path().join("label"), label)?;
+        fs::write(self.path().join("label"), label.trim())?;
         Ok(())
     }
     fn descriprion(&self) -> String {
@@ -50,11 +51,6 @@ pub trait Class {
     }
     fn uuid(&self) -> String {
         let path = self.path().join("uuid");
-        if !path.is_file() {
-            if let Err(e) = fs::write(&path, Self::UUID) {
-                log::error!("class[{}] create meta - {}", path.display(), e);
-            }
-        }
         fs::read_to_string(&path).unwrap_or(Self::UUID.to_owned())
     }
     fn setup(&self) -> Result<()> {

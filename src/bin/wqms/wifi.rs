@@ -15,7 +15,7 @@ pub fn api() -> tide::Server<()> {
     let mut api = tide::new();
     api.at("/").post(|mut req: Request<_>| async move {
         let credent: Credent = req.body_json().await?;
-        let wifi = wqms::ws::open().wifi();
+        let wifi = wqms::ws::root().wifi();
         if let Err(_) = wifi.change_interface(&credent.iface) {
             Ok(Response::new(404))
         } else if let Err(_) = wifi.credentials(&credent.ssid, &credent.key) {
@@ -27,12 +27,19 @@ pub fn api() -> tide::Server<()> {
         }
     });
     api.at("/").get(|_| async {
-        let wifi = wqms::ws::open().wifi();
+        let wifi = wqms::ws::root().wifi();
         Ok(json!({
             "ssid":wifi.ssid(),
             "key":wifi.key(),
             "iface": wifi.interface(),
         }))
+    });
+    api.at("/networks").get(|_| async {
+        let wifi = wqms::ws::root().wifi();
+        let res = Response::new(200);
+        wifi.scan_networks().unwrap();
+        // res.set_body(Body::from_json(&infos)?);
+        Ok(res)
     });
     api
 }

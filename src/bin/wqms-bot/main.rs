@@ -1,0 +1,102 @@
+mod prop;
+mod dir;
+mod cmd;
+
+use futures::{StreamExt};
+use telegram_bot::*;
+// use std::time::Duration;
+use std::sync::Mutex;
+// use std::path::{PathBuf};
+use async_trait::async_trait;
+
+#[async_trait]
+pub trait TextHandler {
+    async fn handle(&mut self, api:Api, message: Message) -> Result<(), Error>;
+}
+
+pub struct BotHandler {
+
+}
+
+
+pub struct State {
+    // command:String,
+    // help: String,
+    // path: PathBuf,
+}
+
+
+lazy_static::lazy_static!{
+
+}
+
+impl State {
+    pub fn new() -> State {
+        State{
+            // command:"".to_owned(),
+            // help:"".to_owned(),
+            // path:PathBuf::from("."),
+        }
+    }
+}
+
+// use wqms::telegram::Telegram;
+
+// pub trait Action {
+    // fn call(&self, data: String) -> dyn Action;
+// }
+
+// struct Home{
+// }
+
+
+// impl Action for Home {
+    // fn call(data:String) -> dyn Action {
+        // Home{}
+    // }
+// } 
+use lazy_static::lazy_static;
+lazy_static!{
+    static ref STATE: Mutex<State> =   Mutex::new(State::new());
+}
+
+// use tokio::time::delay_for;
+
+
+
+
+// async fn prop(api: Api, message: Message) -> Result<(),Error> {
+
+//     if let MessageKind::Text { ref data, .. } = message.kind {
+//         match data.as_str() {
+//             "set" => Ok(()),
+//             _ => Ok(()),
+//         }
+//     } 
+//     Ok(())
+// }
+
+
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    wqms::logger::debug();
+    let ws = wqms::ws::root();
+    let telegram = ws.telegram().unwrap(); 
+    let api = Api::new(telegram.token());
+
+    let result = api.send(GetMe).await?;
+    // let mut state = State::new();
+    println!("{:?}", result); 
+    // Fetch new updates via long poll method
+    let mut stream = api.stream();
+    while let Some(update) = stream.next().await {
+        // If the received update contains a new message...
+        let update = update?;
+        if let UpdateKind::Message(message) = update.kind {
+            if let Err(e) = cmd::handle(api.clone(), message).await {
+                log::error!("telegram bot command - {}",e);
+            }
+        }
+    }
+    Ok(())
+}

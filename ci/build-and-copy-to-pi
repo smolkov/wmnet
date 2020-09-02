@@ -2,8 +2,8 @@
 
 set -e
 
-BINARY=target/arm-unknown-linux-gnueabi/release/lca2019
+BINARY=target/arm-unknown-linux-gnueabi/release/wqms
 
-cross build --target=arm-unknown-linux-gnueabi --release
+cargo build --target=arm-unknown-linux-gnueabi --release
 arm-linux-gnueabihf-strip "$BINARY"
 rsync -av "$BINARY" pi@192.168.0.7:

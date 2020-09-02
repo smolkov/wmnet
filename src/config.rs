@@ -5,6 +5,9 @@ use std::path::Path;
 // use std::str::FromStr;
 
 pub const DEFAULT_CONF: &str = include_str!("../wqms.toml");
+const TSWKEY: &str = "RQ1HTKE735B65NVI";
+const TSRKEY: &str = "XZUIDN95GI2ZOSBX";
+const TSCHANNEL: &str = "1114700";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FirebaseConfig {
@@ -19,6 +22,23 @@ impl Default for FirebaseConfig {
             key: "-".to_owned(),
             url: "-".to_owned(),
             uid: ".".to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TingsSpeakConfig {
+    pub channel: String,
+    pub rkey: String,
+    pub wkey: String,
+}
+
+impl Default for TingsSpeakConfig {
+    fn default() -> Self {
+        TingsSpeakConfig {
+            channel: TSCHANNEL.to_owned(), 
+            rkey: TSRKEY.to_owned(), 
+            wkey: TSWKEY.to_owned(), 
         }
     }
 }
@@ -76,6 +96,7 @@ impl Default for ServerConfig {
 pub struct Config {
     pub name: String,
     pub interface: String,
+    pub thingspeak: TingsSpeakConfig,
     pub statistic: StatisticConfig,
     pub server: ServerConfig,
     pub fb: Option<FirebaseConfig>,
@@ -87,6 +108,7 @@ impl Default for Config {
         Config {
             name: "noname".to_owned(),
             interface: "wlp2s0".to_owned(),
+            thingspeak: TingsSpeakConfig::default(),
             statistic: StatisticConfig::default(),
             server: ServerConfig::default(),
             fb: Some(FirebaseConfig::default()),
@@ -116,35 +138,19 @@ impl Config {
     ///
     /// This does only minimal initialization. In particular, it does not load
     /// any config files from disk. Those will be loaded lazily as-needed.
-    pub fn load(path: &Path) -> Result<Config> {
+    pub fn read(path: &Path) -> Result<Config> {
         if !path.is_file() {
             return Err(bad_working_staton_directory_error(&path));
         }
         let toml_str = fs::read_to_string(&path)?;
         // let config: Config::from(&toml_str)?;
         let config: Config = toml::from_str(&toml_str)?;
-
         Ok(config)
     }
-    pub fn save(&self, path: &Path) -> Result<()> {
+    pub fn write(&self, path: &Path) -> Result<()> {
         let toml_str = toml::to_string(self)?;
         fs::write(path, toml_str)?;
         Ok(())
-    }
-    /// read interval in seconds
-    pub fn interval(&self) -> u64 {
-        1
-    }
-    /// read averaging time in seconds
-    pub fn average_time(&self) -> u64 {
-        60
-    }
-    /// read outliers
-    pub fn outliers(&self) -> u32 {
-        0
-    }
-    pub fn interface(&self) -> &str {
-        &self.interface
     }
 }
 
