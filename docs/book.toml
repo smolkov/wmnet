@@ -1,0 +1,6 @@
+[book]
+authors = ["Sascha"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Water quality monitoring station"
