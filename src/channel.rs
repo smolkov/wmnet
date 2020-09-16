@@ -325,13 +325,13 @@ impl Channel {
 
         match data.parse::<f32>() {
             Ok(value) => {
-                self.push_value(self.scale().scale(value))
+                self.push_value(self.scale().scale(value))?;
             } ,
             Err(e) => {
                 log::error!("channel {} push value failed - {}",ch.label(),e.display())
             } 
         }
-        self
+        Ok(())
     }
     pub fn push_value(&mut self,value:f32) -> Result<()> {
         let path = self.path().join("signal.csv");
@@ -340,12 +340,12 @@ impl Channel {
         // }
 
         let ctime = if let Ok(metadata) = fs::metadata(path) {
-            metadata.created()?
+            metadata.created().unwrap_or(SystemTime::now())
         }else {
             SystemTime::now() 
         };
         let mut last = fs::read_to_string(&path).unwrap_or("".to_owned());
-        let diff = SystemTime::now().duration_since(ctime)?;
+        let diff = SystemTime::now().duration_since(ctime).unwrap_or(Duration::from_millis(0));
         last.push_str(format!("{},{}\n",diff.as_millis(),self.value()).as_str());
         fs::write(&path,last.as_bytes())?;
         self.data.push(self.scale().scale(value));
@@ -378,7 +378,8 @@ impl Channel {
         Ok(())
     }
     pub fn calculate(&mut self) {
-        if self.data.len() == 0 {
+        let sig = self.signal();
+        if sig.len() == 0 {
             if let Err(e) = fs::write(self.path.join(VALUE), "nil".as_bytes()) {
                 log::error!("channel {} write value failed - {}",ch.label(),e.display())
             }
@@ -387,8 +388,8 @@ impl Channel {
             return Ok(());
         }
         let mut sum: f32 = 0.0;
-        for value in self.data.as_slice() {
-            sum = sum + value;
+        for data in sig.as_slice() {
+            sum = sum + data.value;
         }
         let count = match self.data.len() {
             positive if positive > 0 => positive,

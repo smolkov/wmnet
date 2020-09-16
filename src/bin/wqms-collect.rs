@@ -212,7 +212,7 @@ fn main(args: Args) -> Result<()> {
                 if let Err(e) = ph.push_data(jumo.ph().as_str()){
                     log::error!("push data to  channel ph failed- {}", e); 
                 }
-                if let Err(e) = cond.push_data(jumo.cond().as_str()){
+                if let Err(e) = ec.push_data(jumo.ec().as_str()){
                     log::error!("push data to channel cond failed- {}", e); 
                 }
                 if let Err(e) = orp.push_data(jumo.orp().as_str()){
