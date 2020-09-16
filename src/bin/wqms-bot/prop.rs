@@ -28,9 +28,7 @@ pub async fn tswkey(api: Api, message: Message) -> Result<(),Error> {
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         if cmd.len() >1 {
-            if let Err(e) = th.set_wkey(cmd[1]) {
-                api.send(message.chat.text(format!("write thingspeak write key {} - {}",cmd[1],e))).await?; 
-            }
+            th.set_wkey(cmd[1]);
         }else {
             api.send(message.chat.text(format!("set thingspeak write api {}",data))).await?; 
             help(api,message).await?;
@@ -44,9 +42,7 @@ pub async fn tsrkey(api: Api, message: Message) -> Result<(),Error> {
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         if cmd.len() > 1 {
-            if let Err(e) = th.set_rkey(cmd[1]) {
-                api.send(message.chat.text(format!("write thingspeak read key {} - {}",cmd[1],e))).await?; 
-            }
+            th.set_rkey(cmd[1]);
         }else {
             api.send(message.chat.text(format!("set thingspeak write api {}",data))).await?; 
             help(api,message).await?;

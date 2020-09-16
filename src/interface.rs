@@ -21,16 +21,20 @@ pub trait Class {
     fn label(&self) -> String {
         fs::read_to_string(self.path().join("label")).unwrap_or(Self::LABEL.to_owned())
     }
-    fn set_label(&self, label: &str) -> Result<()> {
-        fs::write(self.path().join("label"), label.trim())?;
-        Ok(())
+    fn set_label(&self, label: &str) -> &Self {
+        if let Err(e) = fs::write(self.path().join("label"), label.trim()) {
+            log::error!("class[{}] set label failed - {}", self.path().display(), e);
+        }
+        self
     }
     fn descriprion(&self) -> String {
         fs::read_to_string(self.path().join("description")).unwrap_or(Self::DESC.to_owned())
     }
-    fn set_description(&self, desc: &str) -> Result<()> {
-        fs::write(self.path().join("description"), desc)?;
-        Ok(())
+    fn set_description(&self, desc: &str) -> &Self  {
+        if let Err(e) = fs::write(self.path().join("description"), desc.trim()) {
+            log::error!("class[{}] set label failed - {}", self.path().display(), e);
+        }
+        self
     }
     fn get_name(&self) -> String {
         self.path()
@@ -57,8 +61,8 @@ pub trait Class {
         if !self.path().is_dir() {
             log::debug!("setup new class directory {}", self.path().display());
             fs::create_dir_all(self.path())?;
-            self.set_label(Self::LABEL)?;
-            self.set_description(Self::DESC)?;
+            self.set_label(Self::LABEL);
+            self.set_description(Self::DESC);
             self.meta();
             self.uuid();
         }
@@ -68,13 +72,13 @@ pub trait Class {
 pub trait Status: Class {
 
     /// read status
-    pub fn status(&self)-> String {
+    fn status(&self)-> String {
         fs::read_to_string(self.path().join("status")).unwrap_or("E".to_owned())
     }
     /// set status 
-    pub fn set_status(&mut self, status:&str) -> &mut Self{
+    fn set_status(&mut self, status:&str) -> &mut Self{
         if let Err(e) = fs::write(self.path().join("status"), status.trim().as_bytes()) {
-            log::error!("{} change status to {} failed - {}",self.path().display(),status,e.display())
+            log::error!("{} change status to {} failed - {}",self.path().display(),status,e);
         }
         self
     }

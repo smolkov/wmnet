@@ -1,4 +1,4 @@
-Hello, and thanks for opening a new issue about Rocket!
+Hello, and thanks for opening a new issue about WQMS!
 
 Before opening your issue, we ask that you search through existing issues and
 pull requests to see if your bug report, concern, request, or comment has
@@ -15,7 +15,7 @@ information, selecting the category that best describes your issue:
 
 Bug reports _must_ include:
 
-  1. The version of Rocket you're using. Ensure it's the latest, if possible.
+  1. The version of WQMS you're using. Ensure it's the latest, if possible.
 
   2. The operating system (distribution and version) where the issue occurs.
 

@@ -40,6 +40,12 @@ impl Telegram {
     pub fn token(&self) -> String {
         fs::read_to_string(self.path.join(".token")).unwrap_or(APIKEY.to_owned())
     }
+    pub fn set_token(&self,token:&str) -> &Self {
+        if let Err(e) = fs::write(self.path.join(".token"), token.trim().as_bytes()) {
+            log::error!("TELEGRAM BOT change token failed - {}",e);
+        }
+        self
+    }
     pub fn state(&self) -> PathBuf {
         let path = self.path.join("state");
         if path.is_dir() {

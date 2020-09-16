@@ -84,15 +84,15 @@ impl Nitri {
             // metrics::value!("dosing_current_value", dos);
 
         }else{
-            fs::write(self.path.join(TOX),"none")?;
-            fs::write(self.path.join(DOS),"none")?; 
-            fs::write(self.path.join(STATUS),"E")?;
+            fs::write(self.path.join(TOX),"none".trim())?;
+            fs::write(self.path.join(DOS),"none".trim())?; 
+            fs::write(self.path.join(STATUS),"E".trim())?;
         }
         Ok(())
     }
     pub fn simulate(&self) -> Result<()> {
-        fs::write(self.path.join(DATA),"simulate")?;
-        fs::write(self.path.join(STATUS),"S")?;
+        fs::write(self.path.join(DATA),"simulate".trim())?;
+        fs::write(self.path.join(STATUS),"S".trim())?;
         let mut rng = thread_rng();
 
         let tox = Normal::new(0.0,100.0).unwrap();

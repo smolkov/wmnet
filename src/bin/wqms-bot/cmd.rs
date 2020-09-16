@@ -121,6 +121,7 @@ pub async fn handle(api: Api, message: Message) -> Result<(), Error> {
                 "/download"  => dir::download(api,message).await?,
                 "/d"         => dir::download(api,message).await?,
                 "/dl"        => dir::dlast(api,message).await?,
+                "/tg"        => dir::dlast(api,message).await?,
                 "/get"       => prop::get(api,message).await?,
                 "/set"       => prop::set(api,message).await?,
                 "/wifi"      => prop::setwifi(api,message).await?,

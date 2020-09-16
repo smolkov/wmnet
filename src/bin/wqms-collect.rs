@@ -14,6 +14,8 @@ use structopt::StructOpt;
 use wqms::{ws, Result};
 use wqms::jumo::Jumo;
 use wqms::nitri::Nitri;
+use wqms::channel::Channel;
+use wqms::iface::Class;
 use wqms::analog::Analog;
 use crossbeam::channel::{bounded, select, tick, Receiver};
 // use chrono::{DateTime, Datelike, Utc};
@@ -115,12 +117,12 @@ fn jumo_modbus(jumo:&Jumo) -> std::io::Result<()> {
         jumo.set_ph(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
         log::info!("READ 0x164F: PH: {}",jumo.ph());
     }
-    if let Err(e) = modbus.read_registers(wqms::jumo::COND_REG,3, &mut tab_reg) {
-        jumo.set_cond_value("none").unwrap();
+    if let Err(e) = modbus.read_registers(wqms::jumo::EC_REG,3, &mut tab_reg) {
+        jumo.set_ec_value("none").unwrap();
         log::error!("read register 0x1651 {}", e); 
     }else {
-        jumo.set_cond(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
-        log::info!("READ 0x1651: LEITFAHIGKEIT: {}",jumo.cond());
+        jumo.set_ec(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
+        log::info!("READ 0x1651: LEITFAHIGKEIT: {}",jumo.ec());
     }
     if let Err(e) = modbus.read_registers(0x16BB,3, &mut tab_reg) {
         log::error!("read register 0x16BB {}", e); 
@@ -164,14 +166,15 @@ fn main(args: Args) -> Result<()> {
     let analog   = wqms::analog::setup(&ws)?;
     let thingspeak = ws.thingspeak()?;
 
-    let channels = ws.channels()?;
-    let mut tox  = channels.create("tox");
-    let mut dos  = channels.create("dos");
-    let mut ph   = channels.create("ph");
-    let mut ec   = channels.create("ec");
-    let mut orp  = channels.create("orp");
-    let mut temp = channels.create("temp");
-    let mut tur  = channels.create("tur");
+    let mut channels = ws.channels()?;
+    let path = channels.path();
+    let mut tox  = Channel::create(path,"tox","Tox","%");
+    let mut dos  = Channel::create(path,"dos","Dos","ml/min");
+    let mut ph   = Channel::create(path,"ph","pH","");
+    let mut ec   = Channel::create(path,"ec","EC","mS/cm");
+    let mut orp  = Channel::create(path,"orp","ORP","mV");
+    let mut temp = Channel::create(path,"temp","Temp","°C");
+    let mut tur  = Channel::create(path,"tur","Tur","NTU");
    
     let ticks     = tick(channels.measurement_interval());
     let ctrl_c_events = ctrl_channel().expect("create ctrl c signal failed");
@@ -226,7 +229,9 @@ fn main(args: Args) -> Result<()> {
                 }
                 if start_measurement.elapsed().as_secs() > channels.average_interval().as_secs()  {
                     log::info!("CALCULATE DATA!");
-                    channels.calculate();
+                    if let Err(e)=channels.calculate() {
+                        log::error!("calculate channel value failed- {}", e); 
+                    }
                     
                     // if let Err(e) = tox.calculate(){
                     //     log::error!("tox calculate channel value {}", e);
@@ -254,13 +259,16 @@ fn main(args: Args) -> Result<()> {
                     }
                     start_measurement = std::time::Instant::now();
                     let mut data = TSData::new(); 
+                    println!("TOX={}DOS={}",tox.last_value().unwrap(),dos.last_value().unwrap());
                     data.field1 = tox.last_value();
                     data.field2 = dos.last_value();
                     data.field3 = ph.last_value();
                     data.field4 = ec.last_value();
                     data.field5 = orp.last_value();
                     data.field6 = temp.last_value();
-                    data.field7 = tur.last_value();
+                    data.field7 = None;
+                    data.field8 = tur.last_value();
+                    data.status = channels.status();
                     if let Err(e) = thingspeak.publish(data){
                         log::error!("thingspeak publish data- {}", e);
                     }

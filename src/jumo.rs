@@ -33,12 +33,13 @@ fn modbus_value(b1 : u16 , b2: u16) -> f32  {
 
 impl Jumo {
     fn init(&self) -> Result<()> {
-        if !jumo.path.is_dir() {
-            log::info!("Create jumo device {}",jumo.path.as_path().display());
-            fs::create_dir_all(&jumo.path)?;
-            jumo.set_address("10.10.1.2")?;
-            jumo.set_port(502)?;
+        if !self.path.is_dir() {
+            log::info!("Create jumo device {}",self.path.as_path().display());
+            fs::create_dir_all(&self.path)?;
+            self.set_address("10.10.1.2")?;
+            self.set_port(502)?;
         }
+        Ok(())
     }
     pub fn addr(&self) -> String {
         fs::read_to_string(self.path.join(ADDR)).unwrap_or("10.10.1.2".to_owned())

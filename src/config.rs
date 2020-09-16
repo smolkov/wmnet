@@ -154,6 +154,7 @@ impl Config {
     }
 }
 
+
 // impl FromStr for Config {
 //     type Err = Error;
 //     /// Load a GPIO configuration for the provided toml string

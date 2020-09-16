@@ -7,7 +7,7 @@ use std::env;
 // use serde::{Deserialize, Serialize};
 // use std::fmt;
 // use crate::{Class, Property};
-// use std::fs;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 pub const CONFIG_FILE: &str = "wqms.toml";
@@ -59,6 +59,26 @@ impl Workspace {
     pub fn telegram(&self) -> Result<Telegram> {
         crate::telegram::setup(self)
     }
+    pub fn latitude(&self) -> f32 {
+        let lat = fs::read_to_string(self.path.join("latitude")).unwrap_or("0.0".to_owned());
+        lat.parse::<f32>().unwrap_or(0.0)
+    }
+    pub fn longitude(&self) -> f32 {
+        let lat = fs::read_to_string(self.path.join("longitude")).unwrap_or("0.0".to_owned());
+        lat.parse::<f32>().unwrap_or(0.0)
+    }
+    pub fn set_longitude(&self,long:&str) -> &Self {
+        if let Err(e) = fs::write(self.path.join("longitude"), long.trim().as_bytes()) {
+            log::error!("WS set longetude failed - {}",e);
+        }
+        self
+    }
+    pub fn set_latitude(&self,lat:&str) -> &Self {
+        if let Err(e) = fs::write(self.path.join("latitude"), lat.trim().as_bytes()) {
+            log::error!("WS set longetude failed - {}",e);
+        }
+        self
+    }
 }
 
 const WQMS_PATH: &'static str = "WQMS_DIR";
@@ -77,6 +97,7 @@ pub fn setup(ws: &mut Workspace) -> Result<()>{
     ws.canonicalize()?;
     if !ws.path.is_dir() {
         log::info!("workspace[{}] setup", ws.path.display());
+        fs::create_dir_all(&ws.path)?;
         let config = Config::default();
         ws.write_config(&config)?;
         if let Err(err) = Repository::init(&ws.path) {

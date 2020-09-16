@@ -20,6 +20,7 @@ use std::thread::sleep;
 use std::time::Duration;
 // use std::{fs, io};
 use wqms::ws::Workspace;
+use wqms::iface::Class;
 // Activate SPI, GPIO in raspi-config needs to be run with sudo because of some sysfs_gpio
 // permission problems and follow-up timing problems
 // see https://github.com/rust-embedded/rust-sysfs-gpio/issues/5 and follow-up issues
@@ -64,7 +65,7 @@ pub fn new_state(ws:Workspace) -> State {
                 ShortInfo::new("TOX","NIL"),
                 ShortInfo::new("DOS","NIL"),
                 ShortInfo::new("ph","NIL"),
-                ShortInfo::new("cond","NIL"),
+                ShortInfo::new("ec","NIL"),
                 ShortInfo::new("orp","NIL"),
                 ShortInfo::new("temp","NIL"),
                 ShortInfo::new("tur","NIL"),
@@ -109,7 +110,7 @@ fn main() -> Result<(), std::io::Error> {
     // Configure SPI
     let ws = wqms::ws::default();
     wqms::logger::debug();
-    let mut state = new_state(ws);
+    let mut state = new_state(wqms::ws::default());
     let mut spi = Spidev::open("/dev/spidev0.0").expect("SPI device");
     let options = SpidevOptions::new()
         .bits_per_word(8)
@@ -168,13 +169,13 @@ fn main() -> Result<(), std::io::Error> {
     const VAL: i32 = 20;
     const CORD: [(i32, i32); 8] = [
         (1, 1),
-        (60, 1),
-        (120, 1),
-        (175, 1),
+        (54, 1),
+        (107, 1),
+        (160, 1),
         (1, 40),
-        (60, 40),
-        (120, 40),
-        (175, 40),
+        (54, 40),
+        (107, 40),
+        (160, 40),
     ];
     // Main loop. Displays CPU temperature, uname, and uptime every minute with a red Raspberry Pi
     // header.
@@ -188,7 +189,7 @@ fn main() -> Result<(), std::io::Error> {
         if state.is_changed(){
             display.reset(&mut delay).expect("error resetting display");
             display.clear(Color::White);
-            let chv = ws.channels();
+            let chv = ws.channels().unwrap();
             let mut index = 0;
             for  ch in chv.list.iter() {
                 if index < 8 {
@@ -207,7 +208,7 @@ fn main() -> Result<(), std::io::Error> {
                     .draw(&mut display)
                     .expect("error drawing text");
                     egtext!(
-                        text = &format!("{}[{}]", ch.label().trim(),ch.unit().trim()),
+                        text = &format!("{}[{}] {}", ch.label().as_str().trim(),ch.unit().trim(),ch.status().trim()),
                         top_left = (CORD[index].0, CORD[index].1+ VAL),
                         style = text_style!(
                             font = ProFont10Point,
@@ -235,7 +236,7 @@ fn main() -> Result<(), std::io::Error> {
                 }
             }
             egtext!(
-                text = &format!("{}", state.error.trim()),
+                text = &format!("{}",chv.status().trim()),
                 top_left = (1, 73),
                 style = text_style!(
                     font = ProFont9Point,
