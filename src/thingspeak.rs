@@ -145,6 +145,14 @@ impl ThingSpeak {
         }
         Ok(())
     }
+
+    pub fn settings(&self) -> Result<()>{
+        //
+        // curl -X GET "https://api.thingspeak.com/channels/1114700.json?api_key=XZUIDN95GI2ZOSBX" -H "accept: application/json"
+        let client = reqwest::blocking::Client::new();
+        let res = client.post(self.update_url().as_str()).json(&msg).send()?;
+ 
+    }
     pub fn publish(&self,data:TSData) -> Result<()> {
         let now = Utc::now();
         let path = self.path.join(format!("{}.json", now.format("%Y%m%dT%H%M%S")));
