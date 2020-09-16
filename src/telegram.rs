@@ -31,10 +31,10 @@ const APIKEY: &str = "1228714195:AAFDj9wjGwiejpUW89FyZ4unyl0wmE93Nr4";
 pub struct Telegram {
     path: PathBuf,
 }
-pub struct Cmd {
-    path: PathBuf,
+// pub struct Cmd {
+    // path: PathBuf,
 
-}
+// }
 
 impl Telegram {
     pub fn token(&self) -> String {
@@ -69,6 +69,7 @@ pub fn setup(ws: &Workspace) -> Result<Telegram> {
     if !telegram.path.is_dir() {
         log::info!("Create telegram bot directory {}",telegram.path.as_path().display());
         fs::create_dir_all(&telegram.path)?;
+        telegram.set_token(APIKEY);
     }
     Ok(telegram)
 }
