@@ -74,7 +74,6 @@ pub fn new_state(ws:Workspace) -> State {
         error: "".to_owned(),
         changed: false,
     }
-
 }
 impl State {
     pub fn changed(&mut self) {
@@ -189,11 +188,12 @@ fn main() -> Result<(), std::io::Error> {
         if state.is_changed(){
             display.reset(&mut delay).expect("error resetting display");
             display.clear(Color::White);
+            let chv = ws.channels();
             let mut index = 0;
-            for  ch in state.chan.iter() {
+            for  ch in chv.list.iter() {
                 if index < 8 {
-                    let mut value = ch.value.clone();
-                    value.truncate(4);
+                    let mut value = ch.value();
+                    value.truncate(5);
                     // log::info!("{} {}[{}]",ch.value,ch.label,ch.unit); 
                     egtext!(
                         text = &format!("{}",value.trim()),
@@ -207,7 +207,7 @@ fn main() -> Result<(), std::io::Error> {
                     .draw(&mut display)
                     .expect("error drawing text");
                     egtext!(
-                        text = &format!("{:5}", ch.label.trim()),
+                        text = &format!("{}[{}]", ch.label().trim(),ch.unit().trim()),
                         top_left = (CORD[index].0, CORD[index].1+ VAL),
                         style = text_style!(
                             font = ProFont10Point,

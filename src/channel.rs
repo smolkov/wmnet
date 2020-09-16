@@ -149,15 +149,16 @@ impl Channel {
        true 
     }
     pub fn new(path: &Path) -> Channel {
-        if !path.is_dir() {
-            if let Err(e) = fs::create_dir_all(path) {
-                log::error!("create channel {} - {}", path.display(), e);
-            }
-        }
-        Channel {
+        
+        let ch  = Channel {
             path: path.to_path_buf(),
             data: Vec::new()
         }
+        if let Err(e) = ch.init() {
+            log::error!("channel {} init failed - {}", path.display(), e);
+        }
+        ch
+
     }
     fn id(&self) -> String {
         if let Some(name) = self.path.file_name() {
@@ -168,6 +169,23 @@ impl Channel {
         return "null".to_owned()
 
     }
+    pub fn init(&self) -> Result<()> {
+        if !self.path().is_dir() {
+            if let Err(e) = fs::create_dir_all(seld.path()) {
+                log::error!("channel {} create directory - {}", path.display(), e);
+            }else {
+                fs::write(self.path().join(VALUE),"none".as_bytes())?;
+                fs::write(self.path().join(UNIT), "--".as_bytes())?;
+                fs::write(self.path().join(SLOPE), "1.0".as_bytes())?;
+                fs::write(self.path().join(INTERCEPT), "0.0".as_bytes())?; 
+                fs::write(self.path().join(MAX), "0.0".as_bytes())?;
+                fs::write(self.path().join(MAX), "500.0".as_bytes())?;
+                fs::write(self.path().join(STATUS), "I".as_bytes())?; 
+            }
+        }
+        Ok(())
+    }
+   
     pub fn status(&self)-> String {
         fs::read_to_string(self.path.join(STATUS)).unwrap_or("E".to_owned())
     }
@@ -179,7 +197,7 @@ impl Channel {
         self.data.clear();
     }
     pub fn value(&self) -> String {
-        fs::read_to_string(self.path().join(VALUE)).unwrap_or("nil".to_owned())
+        fs::read_to_string(self.path().join(VALUE)).unwrap_or("none".to_owned())
     }
     pub fn last_value(&self) -> Option<f32> {
         let value = self.value();
@@ -245,8 +263,13 @@ impl Channel {
     }
    
     /// set channel value
-    pub fn set_value(&self, value: f32) -> Result<()> {
+    fn set_value(&self, value: f32) -> Result<()> {
         fs::write(self.path.join(VALUE), format!("{}", value).trim().as_bytes())?;
+        Ok(())
+    }
+     /// set channel value
+     pub fn set_status(&self, status:&str) -> Result<()> {
+        fs::write(self.path.join(STATUS), status.trim().as_bytes())?;
         Ok(())
     }
     /// change unit
@@ -281,18 +304,27 @@ impl Channel {
         Ok(())
     }
     
-    pub fn push_data(&mut self, data: &str) -> Result<()> {
-        let value: f32 = data.parse::<f32>()?;
-        self.data.push(self.scale().scale(value));
+    pub fn push_data(&mut self, data: &str)  {
+        match data.parse::<f32>() {
+            Ok(value) => {
+                self.data.push(self.scale().scale(value));
+                self.set_status("M");
+            } ,
+            Err(e) => {
+                self.set_status("E1");
+                log::error("channel {} push value failed - {}",ch.label(),e.display())
+            } 
+        }
         Ok(())
     }
-    pub fn push_value(&mut self,value:f32) -> Result<()> {
+    pub fn push_value(&mut self,value:f32) {
         self.data.push(self.scale().scale(value));
         Ok(())
     }
     pub fn calculate(&mut self) -> Result<()> {
         if self.data.len() == 0 {
             fs::write(self.path.join(VALUE), "nil".as_bytes())?;
+            self.set_status("E2");
             return Ok(());
         }
         let mut sum: f32 = 0.0;
@@ -305,19 +337,18 @@ impl Channel {
         };
         let mean = sum / count as f32;
         let value = mean;
-        self.set_value(value)?;
+        if let Err(e) = self.set_value(value) {
+            log::error("channel {} set value - {}",ch.paht().display(),e.display()) 
+        }else {
+            self.set_status("C");
+        }
         self.history()?;
         self.clear();
         Ok(())
     }
     pub fn history(&self) -> Result<()> {
-        let history = self.path().join("history");
-        if !history.is_dir() {
-            fs::create_dir_all(&history)?;
-        }
         let now: DateTime<Utc> = Utc::now();
-        let path = history.join(format!( "{}.csv",now.format("%Y%m%d")));
-        
+        let path = self.path().join(format!( "{}.csv",now.format("%Y%m%d")));
         // if let Err(e) = wtr.write_record(&[ "timestamp", "tox", "dos", "ph", "orp", "cond","temp", "tur"]) {
             // log::error!("csv write header data - {}", e);
         // }
@@ -409,6 +440,12 @@ impl Channels {
             return Some(Channel::new(&path));
         }
         None
+    }
+    pub fn getnew(&self,id:&str) -> Result<Channel> {
+        let path seld.path.join(id);
+        if !path.is_dir() {
+            OK()
+        }
     }
     pub fn get_info(&self, id: &str) -> Option<ShortInfo> {
         let path = self.path.join(id);

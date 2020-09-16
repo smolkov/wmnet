@@ -1,0 +1,23 @@
+# Summary
+
+- [Introduction](./readme.md)
+- [About](./about.md)
+- [Hardware](./hardware.md)
+- [Instalation](./install.md)
+-----------
+- [Geraeten](./devices/readme.md)
+    - [Nitritox](./devices/nitritox.md)
+    - [JUMO](./jumo.md)
+- [Messparameter](./channels/readme.md)
+    - [tox](./channels/tox.md)
+    - [dos](./channels/dos.md)
+    - [ph](./channels/ph.md)
+    - [ec](./channels/ec.md)
+    - [orp](./channels/orp.md)
+    - [temp](./channels/temp.md)
+    - [oxygen](./channels/oxygen.md)
+    - [tur](./channels/tur.md)
+-----------
+- [Benutzeroberflache](./gui.md)
+- [Telegramm](./telegramm.md)
+- [Thingspeak](./thingspeak.md)
