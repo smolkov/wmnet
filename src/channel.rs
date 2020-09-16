@@ -36,13 +36,7 @@ const SCALE: &str = "scale";
 const MIN: &str = "min";
 const MAX: &str = "max";
 
-pub const NITRI_TOX: &str = "01-tox";
-pub const NITRI_DOS: &str = "02-dos";
-pub const JUMO_PH: &str = "03-ph";
-pub const JUMO_COND: &str = "04-cond";
-pub const JUMO_ORP: &str = "05-orp";
-pub const JUMO_TEMP: &str = "06-dos";
-pub const AIN_TUR: &str = "07-tur";
+const SIGNAL: &str = "signal.csv";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ChanState {
