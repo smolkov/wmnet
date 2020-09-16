@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 // use std::fmt::Display;
 use std::fs;
+use std::time::{Duration, SystemTime};
+
 // use std::fs::FileType;
 // use std::io::prelude::*;
 use chrono::{DateTime, Utc};
@@ -34,13 +36,7 @@ const SCALE: &str = "scale";
 const MIN: &str = "min";
 const MAX: &str = "max";
 
-pub const NITRI_TOX: &str = "01-tox";
-pub const NITRI_DOS: &str = "02-dos";
-pub const JUMO_PH: &str = "03-ph";
-pub const JUMO_COND: &str = "04-cond";
-pub const JUMO_ORP: &str = "05-orp";
-pub const JUMO_TEMP: &str = "06-dos";
-pub const AIN_TUR: &str = "07-tur";
+const SIGNAL: &str = "signal.csv";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ChanState {
@@ -193,9 +189,7 @@ impl Channel {
     pub fn unit(&self) -> String {
         fs::read_to_string(self.path.join(UNIT)).unwrap_or("--".to_owned())
     }
-    pub fn clear(&mut self) {
-        self.data.clear();
-    }
+   
     pub fn value(&self) -> String {
         fs::read_to_string(self.path().join(VALUE)).unwrap_or("none".to_owned())
     }
@@ -263,88 +257,113 @@ impl Channel {
     }
    
     /// set channel value
-    fn set_value(&self, value: f32) -> Result<()> {
-        fs::write(self.path.join(VALUE), format!("{}", value).trim().as_bytes())?;
-        Ok(())
+    fn set_value(&self, value: f32) -> &Channel {
+        if let Err(e) = fs::write(self.path.join(VALUE), format!("{}", value).trim().as_bytes()) {
+            log::error!("channel {} change value to {} failed - {}",self.path().display(),status,e.display())
+            self.set_status("E");
+        }
+        self
     }
      /// set channel value
-     pub fn set_status(&self, status:&str) -> Result<()> {
-        fs::write(self.path.join(STATUS), status.trim().as_bytes())?;
-        Ok(())
+     pub fn set_status(&self, status:&str) -> &Channel{
+        if let Err(e) = fs::write(self.path().join(STATUS), status.trim().as_bytes()) {
+            log::error!("channel {} change status to {} failed - {}",self.path().display(),status,e.display())
+        }
+        self
     }
     /// change unit
-    pub fn set_unit(&self, unit: &str) -> Result<()> {
-        fs::write(self.path.join(UNIT), unit.trim().as_bytes())?;
-        Ok(())
+    pub fn set_unit(&self, unit: &str) -> &Channel{
+        if let Err(e) = fs::write(self.path.join(UNIT), unit.trim().as_bytes()) {
+            log::error!("channel {} change unit to {} failed - {}",self.path().display(),status,e.display())
+        }
+        self
     }
-    pub fn set_slope(&self,slope:&str) -> Result<()> {
-        fs::write(self.path().join(SLOPE), slope.trim().as_bytes())?;
-        Ok(())
+    pub fn set_slope(&self,slope:&str) -> &Channel {
+        if let Err(e) = fs::write(self.path().join(SLOPE), slope.trim().as_bytes()) {
+            log::error!("channel {} change slope to {} failed - {}",self.path().display(),status,e.display())
+        }
+        self
     }
-    pub fn set_intercept(&self,intercept:&str) -> Result<()> {
-        fs::write(self.path().join(INTERCEPT), intercept.trim().as_bytes())?; 
-        Ok(())
+    pub fn set_intercept(&self,intercept:&str) -> &Channel{
+        if let Err(e) = fs::write(self.path().join(INTERCEPT), intercept.trim().as_bytes()) {
+            log::error!("channel {} change intercept to {} failed - {}",self.path().display(),status,e.display())
+        }
+        self
     }
-    pub fn set_scale(&self, scale: Scale) -> Result<()> {
-        self.set_slope(format!("{}",scale.slope).as_str())?;
-        self.set_intercept(format!("{}",scale.intercept).as_str())?;
-        Ok(())
+    pub fn set_scale(&self, scale: Scale) -> &Channel {
+        self.set_slope(format!("{}",scale.slope).as_str());
+        self.set_intercept(format!("{}",scale.intercept).as_str());
+        self
     }
-    pub fn set_min(&self,max:&str) -> Result<()> {
-        fs::write(self.path().join(MAX), max.trim().as_bytes())?;
-        Ok(())
+    pub fn set_min(&self,max:&str) -> &Channel {
+        if let Err(e) = fs::write(self.path().join(MAX), max.trim().as_bytes()){
+            log::error!("channel {} change intercept to {} failed - {}",self.path().display(),status,e.display())
+        }
+        self
     }
     pub fn set_max(&self,max:&str) -> Result<()> {
-        fs::write(self.path().join(MAX), max.trim().as_bytes())?;
-        Ok(())
+        if let Err(e) = fs::write(self.path().join(MAX), max.trim().as_bytes()) {
+            log::error!("channel {} change intercept to {} failed - {}",self.path().display(),status,e.display())
+        }
+        self
     }
-    pub fn set_range(&self, min: f32, max: f32) -> Result<()> {
-        self.set_min(format!("{}",min).as_str())?;
-        self.set_max(format!("{}",max).as_str())?;
-        Ok(())
+    pub fn set_range(&self, min: f32, max: f32) -> &Channel {
+        self.set_min(format!("{}",min).as_str());
+        self.set_max(format!("{}",max).as_str());
+        self
     }
-    
-    pub fn push_data(&mut self, data: &str)  {
+    pub fn clear_data(&mut self) {
+        let path = self.path().join(format!( "{}.csv",now.format("%Y%m%d")));
+        if path.is_file() {
+            if Err(e) = fs::remove_file(&path) {
+                log::error!("channel {} clear data failed - {}",ch.path().display(),e.display())
+            }
+        }
+        self.data.clear();
+    }
+    pub fn push_data(&mut self, data: &str) -> Result<()>  {
+
         match data.parse::<f32>() {
             Ok(value) => {
-                self.data.push(self.scale().scale(value));
-                self.set_status("M");
+                self.push_value(self.scale().scale(value))?;
             } ,
             Err(e) => {
-                self.set_status("E1");
-                log::error("channel {} push value failed - {}",ch.label(),e.display())
+                log::error!("channel {} push value failed - {}",ch.label(),e.display())
             } 
         }
         Ok(())
     }
-    pub fn push_value(&mut self,value:f32) {
-        self.data.push(self.scale().scale(value));
-        Ok(())
-    }
-    pub fn calculate(&mut self) -> Result<()> {
-        if self.data.len() == 0 {
-            fs::write(self.path.join(VALUE), "nil".as_bytes())?;
-            self.set_status("E2");
-            return Ok(());
-        }
-        let mut sum: f32 = 0.0;
-        for value in self.data.as_slice() {
-            sum = sum + value;
-        }
-        let count = match self.data.len() {
-            positive if positive > 0 => positive,
-            _ => 1,
-        };
-        let mean = sum / count as f32;
-        let value = mean;
-        if let Err(e) = self.set_value(value) {
-            log::error("channel {} set value - {}",ch.paht().display(),e.display()) 
+    pub fn push_value(&mut self,value:f32) -> Result<()> {
+        let path = self.path().join("signal.csv");
+        // if let Err(e) = wtr.write_record(&[ "timestamp", "tox", "dos", "ph", "orp", "cond","temp", "tur"]) {
+            // log::error!("csv write header data - {}", e);
+        // }
+
+        let ctime = if let Ok(metadata) = fs::metadata(path) {
+            metadata.created().unwrap_or(SystemTime::now())
         }else {
-            self.set_status("C");
+            SystemTime::now() 
+        };
+        let mut last = fs::read_to_string(&path).unwrap_or("".to_owned());
+        let diff = SystemTime::now().duration_since(ctime).unwrap_or(Duration::from_millis(0));
+        last.push_str(format!("{},{}\n",diff.as_millis(),self.value()).as_str());
+        fs::write(&path,last.as_bytes())?;
+        self.data.push(self.scale().scale(value));
+        self
+    }
+    pub fn signal(&self) -> Vec<Data> {
+        let path = self.path().join("signal.csv");
+        let mut signal = Vec<Data>::new();
+        let data:Vec<&str> = fs::read_to_string(&path).unwrap_or("".to_owned()).split('\n');
+        for val in self.data.as_slice() {
+            let v = value.spit(',');
+            if v.len() >1 {
+                let time = v[0].parse::<u64>().unwrap_or(0);
+                let value = v[1].parse::<f32>().unwrap_or(0.0);
+                signal.push(Data{time,value});
+            }
         }
-        self.history()?;
-        self.clear();
-        Ok(())
+        signal
     }
     pub fn history(&self) -> Result<()> {
         let now: DateTime<Utc> = Utc::now();
@@ -356,6 +375,36 @@ impl Channel {
         last.push_str(format!("{},{}\n",now,self.value()).as_str());
         println!("next measurement in {}", self.path().display());
         fs::write(&path,last.as_bytes())?;
+        Ok(())
+    }
+    pub fn calculate(&mut self) {
+        let sig = self.signal();
+        if sig.len() == 0 {
+            if let Err(e) = fs::write(self.path.join(VALUE), "nil".as_bytes()) {
+                log::error!("channel {} write value failed - {}",ch.label(),e.display())
+            }
+            log::error!("channel {} empty signal data ",ch.label(),e.display())
+            self.set_status("E");
+            return Ok(());
+        }
+        let mut sum: f32 = 0.0;
+        for data in sig.as_slice() {
+            sum = sum + data.value;
+        }
+        let count = match self.data.len() {
+            positive if positive > 0 => positive,
+            _ => 1,
+        };
+        let mean = sum / count as f32;
+        let value = mean;
+        self.set_value(value);
+        if let Err(e) = self.history() {
+            log::error!("channel {} write history failed - {}",ch.paht().display(),e.display()) 
+            self.set_status("E");
+        }else {
+            self.set_status("M");
+        }
+        self.clear_data();
         Ok(())
     }
     pub fn markdown(&self) -> String {
@@ -441,11 +490,9 @@ impl Channels {
         }
         None
     }
-    pub fn getnew(&self,id:&str) -> Result<Channel> {
-        let path seld.path.join(id);
-        if !path.is_dir() {
-            OK()
-        }
+    pub fn create(&self,id:&str) -> Channel {
+        let path = self.path.join(id);
+        Channel::new(&path)
     }
     pub fn get_info(&self, id: &str) -> Option<ShortInfo> {
         let path = self.path.join(id);
@@ -507,7 +554,17 @@ impl Channels {
             data:Vec::new(),
         })
     }
-
+    /// Status
+    pub fn status(&self)-> String {
+        fs::read_to_string(self.path.join(STATUS)).unwrap_or("E".to_owned())
+    }
+     /// set channel value
+    pub fn set_status(&self, status:&str) -> {
+        if let Err(e) = fs::write(self.path().join(STATUS), status.trim().as_bytes()) {
+            log::error!("channels {} change status to {} failed - {}",self.path().display(),status,e.display())
+        }
+        self
+    }
     /// Measurement interval
     /// default 1000 milliseconds
     pub fn measurement_interval(&self) -> std::time::Duration {
@@ -576,6 +633,14 @@ impl Channels {
     pub fn set_maxcv(&self, maxcv: f32) -> Result<()> {
         fs::write(self.path().join(MAXCV), format!("{}", maxcv).as_bytes())?;
         Ok(())
+    }
+    pub fn calculate(&mut self) {
+        let mut status = String::new();
+        for  ch in chv.list.iter() { 
+            ch.calculate();
+            status.push_str(ch.status().trim().as_str());
+        }
+        self.set_status(status.as_str());
     }
     /// channels collection history
     pub fn history(&self)  -> Result<()> {

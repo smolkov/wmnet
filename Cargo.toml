@@ -78,7 +78,7 @@ shell = "0.3.2"
 
 # libmodbus-rs = { git = "https://github.com/zzeroo/libmodbus-rs.git" }
 
-libmodbus-rs = "0.8.3"
+libmodbus-rs = "0.8.0"
 
 futures = "0.3"
 tokio = { version = "0.2", features = ["macros", "time", "fs"] }
