@@ -339,7 +339,6 @@ impl Channel {
         self.data.clear();
     }
     pub fn push_data(&mut self, data: &str) -> Result<()>  {
-        println!("CHANNEL {} push data{}",self.label(),data);
         match data.parse::<f32>() {
             Ok(value) => {
                 self.push_value(value)?;
@@ -361,7 +360,6 @@ impl Channel {
         }else {
             SystemTime::now() 
         };
-        println!("CHANNEL {} push value{} slope={} intercept={} scaled{}",self.label(),value,self.slope(),self.intercept(),self.scale().scale(value));
         let mut last = fs::read_to_string(&path).unwrap_or("".to_owned());
         let diff = SystemTime::now().duration_since(ctime).unwrap_or(Duration::from_millis(0));
         last.push_str(format!("{},{}\n",diff.as_millis(),self.scale().scale(value)).as_str());
