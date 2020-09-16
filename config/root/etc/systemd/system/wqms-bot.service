@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=~
-ExecStart=/home/pi/.wqms/bin/wqms-
+ExecStart=/home/pi/wqms-bot
 Restart=always
 RestartSec=5
 User=pi

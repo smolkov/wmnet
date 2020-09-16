@@ -18,7 +18,7 @@ const TEMP: &str = "temperatur";
 pub const ORP_REG: u16 = 0x164D;
 pub const PH_REG: u16 = 0x164F;
 pub const COND_REG: u16 = 0x1651;
-pub const TEMP_REG: u16 = 0x1651;
+pub const TEMP_REG: u16 = 0x16BB;
 pub struct Jumo {
     path: PathBuf,
 }
@@ -32,7 +32,7 @@ fn modbus_value(b1 : u16 , b2: u16) -> f32  {
 
 impl Jumo {
     pub fn addr(&self) -> String {
-        fs::read_to_string(self.path.join(ADDR)).unwrap_or("192.168.0.2".to_owned())
+        fs::read_to_string(self.path.join(ADDR)).unwrap_or("10.10.1.2".to_owned())
     }
     pub fn port(&self) -> i32 {
         if let Ok(number) = fs::read_to_string(self.path.join(PORT)) {
@@ -104,6 +104,22 @@ impl Jumo {
         fs::write(self.path.join(TEMP), format!("{}", modbus_value(b1,b2)).trim().as_bytes())?;
         Ok(())
     }
+    pub fn set_orp_value(&self,value:&str) -> Result<()> {
+        fs::write(self.path.join(ORP), value.trim().as_bytes())?;
+        Ok(())
+    }
+    pub fn set_ph_value(&self,value:&str) -> Result<()> {
+        fs::write(self.path.join(PH), value.trim().as_bytes())?;
+        Ok(())
+    }
+    pub fn set_cond_value(&self,value:&str) -> Result<()> {
+        fs::write(self.path.join(COND), value.trim().as_bytes())?;
+        Ok(())
+    }
+    pub fn set_temp_value(&self,value:&str) -> Result<()> {
+        fs::write(self.path.join(TEMP), value.trim().as_bytes())?;
+        Ok(())
+    }
     pub fn set_status(&self,status:&str) -> Result<()> {
         fs::write(self.path.join(STATUS),status.trim())?;
         Ok(())
@@ -111,8 +127,8 @@ impl Jumo {
     pub fn decode(&self,orp:(u16,u16),ph:(u16,u16),cond:(u16,u16),temp:(u16,u16)) -> Result<()> {
         self.set_orp(orp.0,orp.1)?;
         self.set_ph(ph.0,ph.1)?;
-        self.set_cond(cond.0,ph.1)?;
-        self.set_temp(temp.0,ph.1)?;
+        self.set_cond(cond.0,cond.1)?;
+        self.set_temp(temp.0,temp.1)?;
         Ok(())
     }
 }
@@ -131,5 +147,5 @@ pub fn setup(ws: &Workspace) -> Result<Jumo> {
 
 
 pub fn open() -> Result<Jumo> {
-    setup(&crate::ws::root())
+    setup(&crate::ws::default())
 }

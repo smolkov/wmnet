@@ -69,5 +69,5 @@ pub fn setup(ws: &Workspace) -> Result<Telegram> {
 
 
 pub fn open() -> Result<Telegram> {
-    setup(&crate::ws::root())
+    setup(&crate::ws::default())
 }

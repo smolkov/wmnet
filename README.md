@@ -94,12 +94,14 @@ Alternatively use `-p` to set the port to a non-privileged one.
 
 ### Systemd Service
 
-Copy `iotnode.service` to `/etc/systemd/system/`.
+Copy `wqms.service` to `/etc/systemd/system/`.
+Copy `ngrok.service` to `/etc/systemd/system/`.
 
     sudo systemctl daemon-reload
-    sudo setcap cap_net_bind_service=ep iotnode
-    sudo systemctl enable --now iotnode
-
+    sudo systemctl enable ngrok.service
+    sudo systemctl enable --now wqms.service
+    sudo systemctl enable wqmsbot.service
+    sudo 
 <!-- Badges -->
 
 [issue]: https://img.shields.io/github/issues/smolkov/iotnode?style=flat-square

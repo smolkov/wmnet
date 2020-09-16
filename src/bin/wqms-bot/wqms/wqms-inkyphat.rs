@@ -16,7 +16,7 @@ extern crate embedded_graphics;
 use embedded_graphics::coord::Coord;
 use embedded_graphics::prelude::*;
 use embedded_graphics::Drawing;
-
+use linux_embedded_hal::spidev::{SPI_MODE_0, SpidevOptions};
 // Font
 extern crate profont;
 use profont::{ProFont10Point, ProFont12Point,ProFont18Point, ProFont9Point};
@@ -90,8 +90,9 @@ impl Args {
 
 #[paw::main]
 fn main(args: Args) -> Result<()> {
-    let ws = wqms::ws::root();
-    let mut spi = Spidev::open(args.spi()).expect("SPI device");
+    
+    let ws = wqms::ws::default();
+    let mut spi = Spidev::open("/dev/spidev0.0").expect("SPI device");
     let options = SpidevOptions::new()
         .bits_per_word(8)
         .max_speed_hz(4_000_000)

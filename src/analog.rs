@@ -71,5 +71,5 @@ pub fn setup(ws: &Workspace) -> Result<Analog> {
 
 
 pub fn open() -> Result<Analog> {
-    setup(&crate::ws::root())
+    setup(&crate::ws::default())
 }

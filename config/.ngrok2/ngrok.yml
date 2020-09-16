@@ -1,0 +1,8 @@
+authtoken: 4uLwXBLeffK7gPDfnfRE4_57mjJ8edy5B9bhX4juVBh
+region: eu
+tunnels:
+  ssh-acces-africa1:
+    proto: tcp
+    remote_addr: 1.tcp.eu.ngrok.io:27922
+    # example forwarding to SSH, you may want to change the port number
+    addr: 22

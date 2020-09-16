@@ -116,14 +116,22 @@ pub struct Data {
     pub value: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize,Clone)]
 pub struct ShortInfo {
     pub label: String,
     pub unit: String,
     pub value: String,
 }
 
-
+impl ShortInfo {
+    pub fn new(label:&str,value:&str) -> ShortInfo {
+        ShortInfo{
+            label: label.to_owned(),
+            unit: "--".to_owned(),
+            value: value.to_owned(),
+        }    
+    }
+}
 /// Channel fs interface
 pub struct Channel {
     path: PathBuf,
@@ -409,7 +417,7 @@ impl Channels {
         }
         None
     }
-    pub fn list_info(&self) -> Result<Vec<ShortInfo>> {
+    pub fn infos(&self) -> Result<Vec<ShortInfo>> {
         let mut chsinfo = Vec::new();
         for entry in fs::read_dir(&self.path)? {
             let entry = entry?;
@@ -543,6 +551,8 @@ impl Channels {
                 head.push(',');
                 head.push_str(chan.label().as_str());
             }
+            head.push('\n');
+            fs::write(&path,head.as_bytes())?; 
         }
         let mut last = fs::read_to_string(&path).unwrap_or("".to_owned());
         last.push_str(format!("{}",now).as_str());

@@ -3,6 +3,7 @@ use std::path::{PathBuf};
 use crate::{Workspace,Result};
 use rand_distr::{Normal, Distribution};
 use rand::thread_rng;
+//use metrics::gauge;
 
 
 const ADDR: &str = "addr";
@@ -73,10 +74,14 @@ impl Nitri {
         let data =  std::str::from_utf8(buf)?;
         fs::write(self.path.join(DATA),data)?;
         let v: Vec<&str> = data.split(';').collect();
-        if v.len() > 6 {
-            fs::write(self.path.join(TOX), v[3].as_bytes())?;
+        if v.len() > 5 {
+            fs::write(self.path.join(TOX), v[2].as_bytes())?;
             fs::write(self.path.join(DOS), v[4].as_bytes())?;
-            fs::write(self.path.join(STATUS),"M")?;
+            fs::write(self.path.join(STATUS),v[5])?;
+            // let tox = v[3].parse::<u64>()?;
+            // let dos = v[3].parse::<u64>()?;
+            // metrics::value!("toxic_current_value", tox);
+            // metrics::value!("dosing_current_value", dos);
 
         }else{
             fs::write(self.path.join(TOX),"none")?;
@@ -114,5 +119,5 @@ pub fn setup(ws: &Workspace) -> Result<Nitri> {
 
 
 pub fn open() -> Result<Nitri> {
-    setup(&crate::ws::root())
+    setup(&crate::ws::default())
 }

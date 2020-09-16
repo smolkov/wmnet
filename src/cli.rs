@@ -27,6 +27,10 @@ impl Init {
         self.git
     }
 }
+/// ✇ service
+#[derive(Debug, StructOpt)]
+pub struct Service {
+}
 /// ✇ clean
 #[derive(Debug, StructOpt)]
 pub struct Clean {
@@ -92,6 +96,8 @@ pub struct List {}
 ///📢 Commands
 #[derive(Debug, StructOpt)]
 pub enum Cmd {
+    #[structopt(name = "service", about = "📢service start")]
+    Service(Service),
     #[structopt(name = "init", about = "📢init workspace")]
     Init(Init),
     #[structopt(name = "clean", about = "📢clean workspace")]

@@ -50,9 +50,6 @@ impl Workspace {
     pub fn web(&self) -> Web {
         crate::web::open(self)
     }
-    pub fn network(&self) -> Network {
-        crate::network::open(self)
-    }
     pub fn wifi(&self) -> Wifi {
         crate::wifi::open(self)
     }
@@ -103,7 +100,7 @@ pub fn open(path:&Path) -> Workspace {
     ws
 }
 
-pub fn root() ->  Workspace {
+pub fn default() ->  Workspace {
     let mut ws = Workspace {
         path:  rootpath(),
     }; 

@@ -7,12 +7,12 @@ use telegram_bot::*;
 // use std::time::Duration;
 use std::sync::Mutex;
 // use std::path::{PathBuf};
-use async_trait::async_trait;
+// use async_trait::async_trait;
 
-#[async_trait]
-pub trait TextHandler {
-    async fn handle(&mut self, api:Api, message: Message) -> Result<(), Error>;
-}
+// #[async_trait]
+// pub trait TextHandler {
+    // async fn handle(&mut self, api:Api, message: Message) -> Result<(), Error>;
+// }
 
 pub struct BotHandler {
 
@@ -40,50 +40,16 @@ impl State {
     }
 }
 
-// use wqms::telegram::Telegram;
-
-// pub trait Action {
-    // fn call(&self, data: String) -> dyn Action;
-// }
-
-// struct Home{
-// }
-
-
-// impl Action for Home {
-    // fn call(data:String) -> dyn Action {
-        // Home{}
-    // }
-// } 
 use lazy_static::lazy_static;
 lazy_static!{
     static ref STATE: Mutex<State> =   Mutex::new(State::new());
 }
 
-// use tokio::time::delay_for;
-
-
-
-
-// async fn prop(api: Api, message: Message) -> Result<(),Error> {
-
-//     if let MessageKind::Text { ref data, .. } = message.kind {
-//         match data.as_str() {
-//             "set" => Ok(()),
-//             _ => Ok(()),
-//         }
-//     } 
-//     Ok(())
-// }
-
-
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    wqms::logger::debug();
-    let ws = wqms::ws::root();
+    let ws = wqms::ws::default();
     let telegram = ws.telegram().unwrap(); 
     let api = Api::new(telegram.token());
-
     let result = api.send(GetMe).await?;
     // let mut state = State::new();
     println!("{:?}", result); 

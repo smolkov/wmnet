@@ -78,7 +78,7 @@ const SETTINGS: serial::PortSettings = serial::PortSettings {
 
 const CMD: &str = "D\r\n";
 fn nitritox_rs232(nitri: &Nitri) -> std::io::Result<()> {
-    log::info!("NITRITOX: collect data");
+    // log::info!("NITRITOX: collect data");
     let mut buf: Vec<u8> = vec![0; 1000];
     let mut port = serial::open(nitri.uart().as_str())?;
     port.configure(&SETTINGS).unwrap();
@@ -86,7 +86,9 @@ fn nitritox_rs232(nitri: &Nitri) -> std::io::Result<()> {
     port.write(CMD.as_bytes())?;
     std::thread::sleep(std::time::Duration::from_millis(2000));
     port.read(&mut buf[..])?;
-   
+    if let Err(e)=nitri.decode(&buf) {
+        log::error!("Nitritox decode recived data failed - {}",e);
+    }
     Ok(())
 }
 
@@ -100,25 +102,29 @@ fn jumo_modbus(jumo:&Jumo) -> std::io::Result<()> {
     }
     let mut tab_reg = vec![0u16; 32];
     if let Err(e) = modbus.read_registers(wqms::jumo::ORP_REG,3, &mut tab_reg) {
+        jumo.set_orp_value("none").unwrap();
         log::error!("read register 0x164D {}", e); 
     } else {
-        jumo.set_orp(tab_reg[0],tab_reg[1]).expect("jomo set orp error");
+        jumo.set_orp(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
         log::info!("READ 0x164D: ORP: {}",jumo.orp());
     }
-    if let Err(e) = modbus.read_registers(wqms::jumo::PH_REG,3, &mut tab_reg) {
+    if let Err(e) = modbus.read_registers(0x164F,3, &mut tab_reg) {
+        jumo.set_ph_value("none").unwrap();
         log::error!("read register 0x164F {}", e); 
     }else {
-        jumo.set_ph(tab_reg[0],tab_reg[1]).expect("jomo set orp error");
+        jumo.set_ph(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
         log::info!("READ 0x164F: PH: {}",jumo.ph());
     }
     if let Err(e) = modbus.read_registers(wqms::jumo::COND_REG,3, &mut tab_reg) {
+        jumo.set_cond_value("none").unwrap();
         log::error!("read register 0x1651 {}", e); 
     }else {
-        jumo.set_cond(tab_reg[0],tab_reg[1]).expect("jomo set orp error");
+        jumo.set_cond(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
         log::info!("READ 0x1651: LEITFAHIGKEIT: {}",jumo.cond());
     }
-    if let Err(e) = modbus.read_registers(wqms::jumo::TEMP_REG,3, &mut tab_reg) {
+    if let Err(e) = modbus.read_registers(0x16BB,3, &mut tab_reg) {
         log::error!("read register 0x16BB {}", e); 
+        jumo.set_temp_value("none").unwrap();
     } else {
         jumo.set_temp(tab_reg[0],tab_reg[1]).expect("jumo set temperatur error");
         log::info!("READ 0x16BB: TEMPERATUR: {}",jumo.temp());
@@ -150,9 +156,9 @@ fn read_tur(analog: &Analog) -> Result<()> {
 
 #[paw::main]
 fn main(args: Args) -> Result<()> {
-
     wqms::logger::debug();
-    let ws = ws::root();
+    // wqms::metrics::init()?;
+    let ws = ws::default();
     let channels = ws.channels()?;
     let nitri    = wqms::nitri::setup(&ws)?;
     let jumo     = wqms::jumo::setup(&ws)?;
@@ -179,9 +185,8 @@ fn main(args: Args) -> Result<()> {
     let ctrl_c_events = ctrl_channel().expect("create ctrl c signal failed");
     log::info!("Run interval {} [msec] average time {} [sec]",channels.measurement_interval().as_millis(),channels.average_interval().as_secs());
     let mut start_measurement = std::time::Instant::now();
-    let mut rng = thread_rng();
-
-    let tur_sumulate = Normal::new(0.0,100.0).unwrap();
+    // let mut rng = thread_rng();
+    // let tur_sumulate = Normal::new(0.0,100.0).unwrap();
     loop {
         select! {
             recv(ticks) -> _ => {
@@ -196,20 +201,37 @@ fn main(args: Args) -> Result<()> {
                     if let Err(e) = jumo_modbus(&jumo) {
                         log::error!("jumo collect modbus- {}",e);
                     }
-                    if let Err(e) = read_tur(&analog) {
-                        log::error!("Analog: collect data - {}",e);
-                    }
+                    // if let Err(e) = analog.simulate() {
+                        // log::error!("Analog: collect data - {}",e);
+                    // }
+                    // if let Err(e) = read_tur(&analog) {
+                        // log::error!("Analog: collect data - {}",e);
+                    // }
                     // if let Err(e) = kit(&mut dulling_data) {
                         // log::error!("KIT: collect data - {}",e);
                     // }
                 }
-                tox.push_data(nitri.toxic().as_str()).expect("push data to toxic channel failed");
-                dos.push_data(nitri.dosing().as_str()).expect("push data to dosing channel failed");
-                ph.push_data(jumo.ph().as_str()).expect("push data to ph channel failed");
-                cond.push_data(jumo.cond().as_str()).expect("push data to cond channel failed");
-                orp.push_data(jumo.cond().as_str()).expect("push data to orp channel failed");
-                temp.push_data(jumo.temp().as_str()).expect("push data to temp channel failed");
-                tur.push_value(tur_sumulate.sample(&mut rng)).expect("push simulatiun value to tur channel failed");
+                if let Err(e) = tox.push_data(nitri.toxic().as_str()){
+                    log::error!("push data to toxic channel tox failed- {}", e); 
+                }
+                if let Err(e) = dos.push_data(nitri.dosing().as_str()){
+                    log::error!("push data to channel dos failed- {}", e); 
+                }
+                if let Err(e) = ph.push_data(jumo.ph().as_str()){
+                    log::error!("push data to  channel ph failed- {}", e); 
+                }
+                if let Err(e) = cond.push_data(jumo.cond().as_str()){
+                    log::error!("push data to channel cond failed- {}", e); 
+                }
+                if let Err(e) = orp.push_data(jumo.orp().as_str()){
+                    log::error!("push data to channel orp failed- {}", e); 
+                }
+                if let Err(e) = temp.push_data(jumo.temp().as_str()){
+                    log::error!("push data to channel temp failed- {}", e); 
+                }
+                if let Err(e) = tur.push_data(analog.value().as_str()){
+                    log::error!("push data to channel tur failed- {}", e); 
+                }
                 if start_measurement.elapsed().as_secs() > channels.average_interval().as_secs()  {
                     log::info!("CALCULATE DATA!");
                     if let Err(e) = tox.calculate(){

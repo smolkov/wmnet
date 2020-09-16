@@ -1,3 +1,6 @@
 /target
 .example
 .example-*
+dist
+.redis.dataocean
+.rediscloud

@@ -14,8 +14,8 @@ use std::path::{Path, PathBuf};
 pub const NETDIR: &'static str = "net";
 pub const INTERVAL: &'static str = "refresh_interval";
 pub const IFACE: &'static str = "iface";
-pub const ADDRESS: &'static str = "address";
-pub const STATE: &'static str = "state";
+pub const HOST: &'static str = "host";
+pub const STATUS: &'static str = "status";
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum State {
@@ -121,28 +121,7 @@ impl Network {
         fs::write(self.path.join(IFACE), interface.as_bytes())?;
         Ok(())
     }
-    pub fn ping(&self) -> Result<()> {
-        let state = state();
-        if state != self.state() {
-            fs::write(self.path.join(STATE), format!("{}", state))?;
-        }
-        let address = hostname();
-        if address != fs::read_to_string(self.path.join(ADDRESS)).unwrap_or("none".to_owned()) {
-            fs::write(self.path.join(ADDRESS), address.as_bytes())?;
-        }
-        Ok(())
-    }
-
-    pub fn state(&self) -> State {
-        State::from(
-            fs::read_to_string(self.path.join(STATE))
-                .unwrap_or("offline".to_owned())
-                .as_str(),
-        )
-    }
-    pub fn address(&self) -> String {
-        fs::read_to_string(self.path.join(ADDRESS)).unwrap_or("none".to_owned())
-    }
+    
 }
 
 /// Open network directory
@@ -181,35 +160,27 @@ pub fn setup(ws: &Workspace) -> Result<Network> {
     Ok(net)
 }
 
-pub fn state() -> State {
+pub fn status() -> String {
     match std::process::Command::new("ping")
-        .arg("-c 1")
-        .arg("google.de")
-        .status()
+    .arg("-c 1")
+    .arg("google.de")
+    .status()
     {
         Ok(status) => {
             if status.success() {
-                State::Online
+                "online".to_owned()
             } else {
-                State::Offline
+                "offline".to_owned()
             }
         }
         Err(err) => {
             log::error!("update networt state - {}", err);
-            State::Offline
+            "offline".to_owned()
         }
-    }
+    } 
 }
-
-pub fn online() -> bool {
-    state() == State::Online
-}
-pub fn ofline() -> bool {
-    state() == State::Offline
-}
-
 pub fn hostname() -> String {
-    let hostname = match std::process::Command::new("hostname").arg("-i").output() {
+    let hostname = match std::process::Command::new("hostname").arg("-I").output() {
         Ok(output) => String::from_utf8(output.stdout).unwrap_or("none".to_owned()),
         Err(_) => String::from("none"),
     };

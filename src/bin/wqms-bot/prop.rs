@@ -24,7 +24,7 @@ pub async fn help(api:Api,message:Message) -> Result<(),Error> {
 
 
 pub async fn tswkey(api: Api, message: Message) -> Result<(),Error> {
-    let th = wqms::ws::root().thingspeak().unwrap();
+    let th = wqms::ws::default().thingspeak().unwrap();
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         if cmd.len() >1 {
@@ -40,7 +40,7 @@ pub async fn tswkey(api: Api, message: Message) -> Result<(),Error> {
 }
 
 pub async fn tsrkey(api: Api, message: Message) -> Result<(),Error> {
-    let th = wqms::ws::root().thingspeak().unwrap();
+    let th = wqms::ws::default().thingspeak().unwrap();
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         if cmd.len() > 1 {
@@ -70,7 +70,7 @@ pub async fn setwifi(api: Api, message: Message) -> Result<(),Error> {
 
 
 pub async fn set(api: Api, message: Message)  -> Result<(), Error> {
-    let ws = wqms::ws::root();
+    let ws = wqms::ws::default();
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         if cmd.len() > 2 {
@@ -91,7 +91,7 @@ pub async fn set(api: Api, message: Message)  -> Result<(), Error> {
 }
 
 pub async fn get(api: Api, message: Message)  -> Result<(), Error> {
-    let ws = wqms::ws::root();
+    let ws = wqms::ws::default();
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         if cmd.len() > 1 {
@@ -110,24 +110,24 @@ pub async fn get(api: Api, message: Message)  -> Result<(), Error> {
     Ok(())
 }
 
-pub async fn handle(api: Api, message: Message) -> Result<(), Error> {
-    if let MessageKind::Text { ref data, .. } = message.kind {
-        let cmd: Vec<&str> = data.split(' ').collect();
-        let addr = if cmd.len() > 1 {
-            cmd[1]
-        }else {
-            "wrong_prop"
-        };
-        match cmd[0] {
-            "set"       => set(api,message).await?,
-            "get"       => get(api,message).await?,
-            "wifi"      => setwifi(api,message).await?,
-            "tswkey"    => tswkey(api,message).await?,
-            "tsrkey"    => tsrkey(api,message).await?,
-            _ => {
-                help(api,message).await?;
-            },
-        }
-    }
-    Ok(())
-}
+// pub async fn handle(api: Api, message: Message) -> Result<(), Error> {
+//     if let MessageKind::Text { ref data, .. } = message.kind {
+//         let cmd: Vec<&str> = data.split(' ').collect();
+//         let addr = if cmd.len() > 1 {
+//             cmd[1]
+//         }else {
+//             "wrong_prop"
+//         };
+//         match cmd[0] {
+//             "set"       => set(api,message).await?,
+//             "get"       => get(api,message).await?,
+//             "wifi"      => setwifi(api,message).await?,
+//             "tswkey"    => tswkey(api,message).await?,
+//             "tsrkey"    => tsrkey(api,message).await?,
+//             _ => {
+//                 help(api,message).await?;
+//             },
+//         }
+//     }
+//     Ok(())
+// }
