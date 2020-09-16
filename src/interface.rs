@@ -65,6 +65,21 @@ pub trait Class {
         Ok(())
     }
 }
+pub trait Status: Class {
+
+    /// read status
+    pub fn status(&self)-> String {
+        fs::read_to_string(self.path().join("status")).unwrap_or("E".to_owned())
+    }
+    /// set status 
+    pub fn set_status(&mut self, status:&str) -> &mut Self{
+        if let Err(e) = fs::write(self.path().join("status"), status.trim().as_bytes()) {
+            log::error!("{} change status to {} failed - {}",self.path().display(),status,e.display())
+        }
+        self
+    }
+}
+
 pub trait Property: Class {
     // type Value: String; //  From<String> + Into<String> + Display;
     fn get(&self, name: &str) -> Option<String> {

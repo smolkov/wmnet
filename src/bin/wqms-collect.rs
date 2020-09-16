@@ -159,28 +159,20 @@ fn main(args: Args) -> Result<()> {
     wqms::logger::debug();
     // wqms::metrics::init()?;
     let ws = ws::default();
-    let channels = ws.channels()?;
     let nitri    = wqms::nitri::setup(&ws)?;
     let jumo     = wqms::jumo::setup(&ws)?;
     let analog   = wqms::analog::setup(&ws)?;
     let thingspeak = ws.thingspeak()?;
-    if channels.lastid() == 0 {
-        channels.add("tox", "%")?;
-        channels.add("dos", "mgl")?;
-        channels.add("ph", "mgl")?;
-        channels.add("cond", "mgl")?;
-        channels.add("orp", "mgl")?;
-        channels.add("temp", "mgl")?;
-        channels.add("tur", "mgl")?;
-    }
-    let mut tox = channels.find("1").unwrap();
-    let mut dos = channels.find("2").unwrap();
-    let mut ph = channels.find("3").unwrap();
-    let mut cond = channels.find("4").unwrap();
-    let mut orp = channels.find("5").unwrap();
-    let mut temp = channels.find("6").unwrap();
-    let mut tur = channels.find("7").unwrap();
 
+    let channels = ws.channels()?;
+    let mut tox  = channels.create("tox");
+    let mut dos  = channels.create("dos");
+    let mut ph   = channels.create("ph");
+    let mut ec   = channels.create("ec");
+    let mut orp  = channels.create("orp");
+    let mut temp = channels.create("temp");
+    let mut tur  = channels.create("tur");
+   
     let ticks     = tick(channels.measurement_interval());
     let ctrl_c_events = ctrl_channel().expect("create ctrl c signal failed");
     log::info!("Run interval {} [msec] average time {} [sec]",channels.measurement_interval().as_millis(),channels.average_interval().as_secs());
@@ -234,27 +226,29 @@ fn main(args: Args) -> Result<()> {
                 }
                 if start_measurement.elapsed().as_secs() > channels.average_interval().as_secs()  {
                     log::info!("CALCULATE DATA!");
-                    if let Err(e) = tox.calculate(){
-                        log::error!("tox calculate channel value {}", e);
-                    }
-                    if let Err(e) = dos.calculate(){
-                        log::error!("dos calculate channel value {}", e);
-                    }
-                    if let Err(e) = ph.calculate(){
-                        log::error!("ph calculate channel value {}", e);
-                    }
-                    if let Err(e) = cond.calculate(){
-                        log::error!("cond calculate channel value {}", e);
-                    }
-                    if let Err(e) = orp.calculate(){
-                        log::error!("orp calculate channel value {}", e);
-                    }
-                    if let Err(e) = temp.calculate(){
-                        log::error!("temp calculate channel value {}", e);
-                    }
-                    if let Err(e) = tur.calculate(){
-                        log::error!("tur calculate channel value {}", e);
-                    }
+                    channels.calculate();
+                    
+                    // if let Err(e) = tox.calculate(){
+                    //     log::error!("tox calculate channel value {}", e);
+                    // }
+                    // if let Err(e) = dos.calculate(){
+                    //     log::error!("dos calculate channel value {}", e);
+                    // }
+                    // if let Err(e) = ph.calculate(){
+                    //     log::error!("ph calculate channel value {}", e);
+                    // }
+                    // if let Err(e) = cond.calculate(){
+                    //     log::error!("cond calculate channel value {}", e);
+                    // }
+                    // if let Err(e) = orp.calculate(){
+                    //     log::error!("orp calculate channel value {}", e);
+                    // }
+                    // if let Err(e) = temp.calculate(){
+                    //     log::error!("temp calculate channel value {}", e);
+                    // }
+                    // if let Err(e) = tur.calculate(){
+                    //     log::error!("tur calculate channel value {}", e);
+                    // }
                     if let Err(e) = channels.history() {
                         log::error!("channels: write history - {}", e);
                     }
@@ -263,7 +257,7 @@ fn main(args: Args) -> Result<()> {
                     data.field1 = tox.last_value();
                     data.field2 = dos.last_value();
                     data.field3 = ph.last_value();
-                    data.field4 = cond.last_value();
+                    data.field4 = ec.last_value();
                     data.field5 = orp.last_value();
                     data.field6 = temp.last_value();
                     data.field7 = tur.last_value();
