@@ -22,5 +22,5 @@ jobs:
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.DEPLOY_KEY }}
+          github_token: ${{secrets.DEPLOY}}
           publish_dir: ./docs/book
