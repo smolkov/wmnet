@@ -344,6 +344,7 @@ impl Channel {
                 self.push_value(value)?;
             } ,
             Err(e) => {
+
                 log::error!("channel {} push value failed - {}",self.path().display(),e);
             } 
         }
@@ -375,9 +376,10 @@ impl Channel {
         for val in data {
             let v:Vec<&str> = val.split(',').collect();
             if v.len() >1 {
-                let time = v[0].parse::<u64>().unwrap_or(0);
-                let value = v[1].parse::<f32>().unwrap_or(0.0);
-                signal.push(Data{time,value});
+                if let Ok(value) = v[1].parse::<f32>() {
+                    let time = v[0].parse::<u64>().unwrap_or(0);
+                    signal.push(Data{time,value});
+                }
             }
         }
         signal
@@ -398,21 +400,22 @@ impl Channel {
         let sig = self.signal();
         if sig.len() == 0 {
             self.set_status("E");
-            fs::write(self.path.join(VALUE), "nil".as_bytes())?;
-        } 
-        let mut sum: f32 = 0.0;
-        for data in sig.as_slice() {
-            sum = sum + data.value;
+            fs::write(self.path.join(VALUE), "none".as_bytes())?;
+        } else {
+            let mut sum: f32 = 0.0;
+            for data in sig.as_slice() {
+                sum = sum + data.value;
+            }
+            let count = match self.data.len() {
+                positive if positive > 0 => positive,
+                _ => 1,
+            };
+            let mean = sum / count as f32;
+            let value = mean;
+            self.set_value(value);
+            self.set_status("M");
         }
-        let count = match self.data.len() {
-            positive if positive > 0 => positive,
-            _ => 1,
-        };
-        let mean = sum / count as f32;
-        let value = mean;
-        self.set_value(value);
-        self.set_status("M");
-        self.history()?;
+       // self.history()?;
         self.clear_data();
         Ok(())
     }
@@ -480,6 +483,17 @@ impl Channels {
             list: list,
         };
         Ok(chs)
+    }
+    pub fn reset(&self) -> Result<()> {
+        for entry in fs::read_dir(&self.path)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                let ch = Channel::new(&path);
+                ch.set_status("I");
+            }
+        } 
+        Ok(())
     }
     pub fn list(&self) -> Result<Vec<Channel>> {
         let mut list: Vec<Channel> = Vec::new();
@@ -657,7 +671,9 @@ impl Channels {
             let path = entry.path();
             if path.is_dir() {
                 let mut ch = Channel::new(&path);
-                ch.calculate()?;
+                if let Err(e) = ch.calculate() {
+                    log::error!("{} calculate failed {}",ch.path().display(),e);
+                }
                 status.push_str(ch.status().as_str().trim());
             }
         }

@@ -208,7 +208,7 @@ fn main() -> Result<(), std::io::Error> {
                     .draw(&mut display)
                     .expect("error drawing text");
                     egtext!(
-                        text = &format!("{}[{}] {}", ch.label().as_str().trim(),ch.unit().trim(),ch.status().trim()),
+                        text = &format!("{} {}", ch.label().as_str().trim(),ch.status().trim()),
                         top_left = (CORD[index].0, CORD[index].1+ VAL),
                         style = text_style!(
                             font = ProFont10Point,
@@ -236,7 +236,7 @@ fn main() -> Result<(), std::io::Error> {
                 }
             }
             egtext!(
-                text = &format!("{}",chv.status().trim()),
+                text = &format!("status: {}",chv.status().trim()),
                 top_left = (1, 73),
                 style = text_style!(
                     font = ProFont9Point,
@@ -247,7 +247,7 @@ fn main() -> Result<(), std::io::Error> {
             .draw(&mut display)
             .expect("error drawing text");
             egtext!(
-                text = &format!("status:  {}", state.status.trim()),
+                text = &format!("{}", state.status.trim()),
                 top_left = (10, 83),
                 style = text_style!(
                     font = ProFont9Point,

@@ -41,6 +41,15 @@ impl Jumo {
         }
         Ok(())
     }
+    pub fn reset(&self) -> Result<()>{
+        fs::write(self.path.join(ORP),"none".trim())?;
+        fs::write(self.path.join(PH),"none".trim())?; 
+        fs::write(self.path.join(EC),"none".trim())?; 
+        fs::write(self.path.join(OXYGEN),"none".trim())?; 
+        fs::write(self.path.join(TEMP),"none".trim())?; 
+        fs::write(self.path.join(STATUS),"E".trim())?; 
+        Ok(())
+    }
     pub fn addr(&self) -> String {
         fs::read_to_string(self.path.join(ADDR)).unwrap_or("10.10.1.2".to_owned())
     }

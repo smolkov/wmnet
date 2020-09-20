@@ -43,6 +43,12 @@ impl Nitri {
         }
         443 
     }
+    pub fn reset(&self) -> Result<()>{
+        fs::write(self.path.join(TOX),"none".trim())?;
+        fs::write(self.path.join(DOS),"none".trim())?; 
+        fs::write(self.path.join(STATUS),"E".trim())?; 
+        Ok(())
+    }
     pub fn uart(&self) -> String{
         fs::read_to_string(self.path.join(UART)).unwrap_or("/dev/ttyUSB0".to_owned())
     }

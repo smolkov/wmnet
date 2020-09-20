@@ -49,7 +49,8 @@ lazy_static!{
 async fn main() -> Result<(), Error> {
     let ws = wqms::ws::default();
     let telegram = ws.telegram().unwrap(); 
-    let api = Api::new(telegram.token());
+    println!("TOKEN:{}",telegram.token().trim());
+    let api = Api::new(telegram.token().trim());
     let result = api.send(GetMe).await?;
     // let mut state = State::new();
     println!("{:?}", result); 

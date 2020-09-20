@@ -106,7 +106,7 @@ impl ThingSpeak {
     }
     /// change channel
     pub fn set_channel(&self, channel: &str) -> &Self {
-        if let Err(_e) = fs::write(self.path.join(CHANNEL),channel.as_bytes()){
+        if let Err(_e) = fs::write(self.path.join(CHANNEL),channel.trim().as_bytes()){
             log::error!("thingspeak change channel failed");
         }
         self
@@ -122,7 +122,7 @@ impl ThingSpeak {
             match serde_json::from_str::<TSData>(&data_str) {
                 Ok(data) => {
                     let msg = TSMessage{
-                        write_api_key: self.wkey(),
+                        write_api_key: self.wkey().trim().to_owned(),
                         updates: vec![data],
                     };
                     let res = client.post(self.update_url().as_str()).json(&msg).send()?;

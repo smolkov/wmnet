@@ -7,7 +7,7 @@ TARGET=target/$ARCH/release
 WQMS_BOT=$TARGET/wqms-bot
 WQMS_COLLECT=$TARGET/wqms-collect
 WQMS_INKY=$TARGET/wqms-inky
-HOST=192.168.0.3
+HOST=192.168.0.5
 PORT=22
 
 rsync -av $WQMS_BOT pi@$HOST:

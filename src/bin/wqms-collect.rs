@@ -163,10 +163,13 @@ fn main(args: Args) -> Result<()> {
     let ws = ws::default();
     let nitri    = wqms::nitri::setup(&ws)?;
     let jumo     = wqms::jumo::setup(&ws)?;
+    nitri.reset()?;
+    jumo.reset()?;
     let analog   = wqms::analog::setup(&ws)?;
     let thingspeak = ws.thingspeak()?;
 
     let mut channels = ws.channels()?;
+    channels.reset()?;
     let path = channels.path();
     let mut tox  = Channel::create(path,"tox","Tox","%");
     let mut dos  = Channel::create(path,"dos","Dos","ml/min");
@@ -175,6 +178,7 @@ fn main(args: Args) -> Result<()> {
     let mut orp  = Channel::create(path,"orp","ORP","mV");
     let mut temp = Channel::create(path,"temp","Temp","°C");
     let mut tur  = Channel::create(path,"tur","Tur","NTU");
+    
    
     let ticks     = tick(channels.measurement_interval());
     let ctrl_c_events = ctrl_channel().expect("create ctrl c signal failed");
@@ -232,7 +236,6 @@ fn main(args: Args) -> Result<()> {
                     if let Err(e)=channels.calculate() {
                         log::error!("calculate channel value failed- {}", e); 
                     }
-                    
                     // if let Err(e) = tox.calculate(){
                     //     log::error!("tox calculate channel value {}", e);
                     // }
@@ -259,7 +262,7 @@ fn main(args: Args) -> Result<()> {
                     }
                     start_measurement = std::time::Instant::now();
                     let mut data = TSData::new(); 
-                    println!("TOX={}DOS={}",tox.last_value().unwrap(),dos.last_value().unwrap());
+                    // println!("TOX={}DOS={}",tox.last_value().unwrap(),dos.last_value().unwrap());
                     data.field1 = tox.last_value();
                     data.field2 = dos.last_value();
                     data.field3 = ph.last_value();
@@ -272,7 +275,7 @@ fn main(args: Args) -> Result<()> {
                     if let Err(e) = thingspeak.publish(data){
                         log::error!("thingspeak publish data- {}", e);
                     }
-                   // let mut pipe = redis::pipe();
+                    // let mut pipe = redis::pipe();
                     // pipe.cmd("SADD").arg("my_set").arg(num).ignore();
                     // log::info!("Collect data to csv");
                     // if let Err(e) = wtr.write_record(&[&format!("{}",Utc::now().format("%Y.%m.%d-%H:%M:%S")),&tox.value(), &dos.value(), &ph.value(),&orp.value(),&cond.value(),&temp.value(),&tur.value()]) {

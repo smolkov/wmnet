@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path,PathBuf};
 use telegram_bot::*;
 use telegram_bot::{InputFileUpload};
 use wqms::iface::Class;
@@ -6,6 +6,15 @@ use std::fs;
 use chrono::{DateTime, Utc}; 
 use glob::glob;
 
+
+fn strip_prefix(path:&Path) -> PathBuf {
+    let prefix = wqms::ws::rootpath();
+    if let Ok(p)= path.strip_prefix(&prefix) {
+        p.to_path_buf()
+    }else {
+        path.to_path_buf()
+    }
+}
 /// list 
 fn list(path:&Path) -> wqms::Result<String> {
     let mut data = String::new();
@@ -13,7 +22,8 @@ fn list(path:&Path) -> wqms::Result<String> {
     for entry in glob(format!("{}/**/*",path.display()).as_str()).unwrap(){
         let p = entry.unwrap();
         if !p.is_dir() && p.extension().is_none(){
-            data.push_str(format!("{}",p.display()).as_str());
+            let path = strip_prefix(&p);
+            data.push_str(format!("{}",path.display()).as_str());
             data.push('\n');
         }
     }
@@ -40,7 +50,8 @@ fn list_csv(path:&Path) -> wqms::Result<String> {
     let mut data = String::new();
     data.push_str("Measurement csv files:\n");
     for entry in glob(format!("{}/*.csv",path.display()).as_str()).unwrap() {
-        data.push_str(format!("{}\n",entry.unwrap().display()).as_str());
+        let path = strip_prefix(&entry.unwrap());
+        data.push_str(format!("{}\n",path.display()).as_str());
     }
     Ok(data)
 }
