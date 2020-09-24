@@ -52,10 +52,12 @@ const LUT: [u8; 70] = [
 pub struct State {
     ws: wqms::ws::Workspace,
     chan: Vec<ShortInfo>,
+    online: String,
     status: String,
     host: String,
     error: String,
     changed: bool,
+    last: std::time::Instant,
 }
 
 pub fn new_state(ws:Workspace) -> State {
@@ -70,15 +72,18 @@ pub fn new_state(ws:Workspace) -> State {
                 ShortInfo::new("temp","NIL"),
                 ShortInfo::new("tur","NIL"),
             },
-        status:"offline".to_owned(),
+        online:"offline".to_owned(),
+        status:"-------".to_owned(),
         host: "none".to_owned(),
         error: "".to_owned(),
         changed: false,
+        last : std::time::Instant::now(),
     }
 }
 impl State {
     pub fn changed(&mut self) {
        self.changed = true;
+       self.last = std::time::Instant::now();
     }
     pub fn is_changed(&self) -> bool {
         self.changed
@@ -86,21 +91,31 @@ impl State {
     pub fn update(&mut self) -> wqms::Result<()> {
         self.error = "".to_owned();
         self.changed = false;
-        let status = wqms::network::status();
+        let online = wqms::network::status();
         let host   = wqms::network::hostname();
-        if self.status != status {
-            self.status = status;
+        if self.online != online {
+            self.online = online;
             self.changed();
         }
         if self.host != host {
             self.host= host;
             self.changed();
         }
-        let  list = self.ws.channels()?.infos()?;
+        let status = self.ws.channels()?.status();
+        if self.status != status {
+            self.status = status;
+            self.changed();
+        }
+        let list = self.ws.channels()?.infos()?;
         let count = list.iter().zip(&self.chan).filter(|&(a, b)| a.value != b.value).filter(|&(a,b)| a.label != b.label).count();
         if  count > 0  {
             self.chan = list.iter().cloned().collect();
             self.changed();
+        }
+        if !self.is_changed() {
+            if self.last.elapsed().as_secs() > 600 {
+                self.changed();
+            }
         }
         Ok(())
     }
@@ -118,7 +133,6 @@ fn main() -> Result<(), std::io::Error> {
         .mode(SpiModeFlags::SPI_MODE_0)
         .build();
     spi.configure(&options).expect("SPI configuration");
-
 
     // https://pinout.xyz/pinout/inky_phat
     // Configure Digital I/O Pins
@@ -247,7 +261,7 @@ fn main() -> Result<(), std::io::Error> {
             .draw(&mut display)
             .expect("error drawing text");
             egtext!(
-                text = &format!("{}", state.status.trim()),
+                text = &format!("{}", state.online.trim()),
                 top_left = (10, 83),
                 style = text_style!(
                     font = ProFont9Point,
@@ -264,7 +278,7 @@ fn main() -> Result<(), std::io::Error> {
                 style = text_style!(
                     font = ProFont9Point,
                     background_color = Color::White,
-                    text_color = Color::Red,
+                    text_color = Color::Black,
                 )
             )
             .draw(&mut display)
@@ -284,35 +298,6 @@ fn main() -> Result<(), std::io::Error> {
                 .expect("error drawing text");
             }
 
-            // if let Ok(cpu_temp) = read_cpu_temp() {
-            //     egtext!(
-            //         text = "CPU Temp:",
-            //         top_left = (1, 30),
-            //         style = text_style!(
-            //             font = ProFont14Point,
-            //             background_color = Color::White,
-            //             text_color = Color::Black,
-            //         )
-            //     )
-            //     .draw(&mut display)
-            //     .expect("error drawing text");
-                
-            // }
-
-          
-            // if let Some(uname) = read_uname() {
-            //     egtext!(
-            //         text = uname.trim(),
-            //         top_left = (1, 84),
-            //         style = text_style!(
-            //             font = ProFont9Point,
-            //             background_color = Color::White,
-            //             text_color = Color::Black,
-            //         )
-            //     )
-            //     .draw(&mut display)
-            //     .expect("error drawing text");
-            // }
 
             display.update(&mut delay).expect("error updating display");
             println!("Update...");
