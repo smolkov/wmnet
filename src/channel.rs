@@ -109,21 +109,24 @@ pub struct Data {
 }
 
 #[derive(Debug, Serialize, Deserialize,Clone)]
-pub struct ShortInfo {
+pub struct ChanInfo {
+    pub id: String,
     pub label: String,
     pub unit: String,
     pub value: String,
 }
 
-impl ShortInfo {
-    pub fn new(label:&str,value:&str) -> ShortInfo {
-        ShortInfo{
+impl ChanInfo {
+    pub fn new(label:&str,value:&str) -> ChanInfo {
+        ChanInfo{
+            id: "none".to_owned(),
             label: label.to_owned(),
             unit: "--".to_owned(),
             value: value.to_owned(),
         }    
     }
 }
+
 /// Channel fs interface
 pub struct Channel {
     path: PathBuf,
@@ -190,7 +193,11 @@ impl Channel {
         }
         Ok(())
     }
-   
+    pub fn clear(&mut self) -> Result<()> {
+        fs::write(self.path.join(VALUE), "none".as_bytes())?;
+        self.clear_data();
+        Ok(())
+    }
     pub fn status(&self)-> String {
         fs::read_to_string(self.path.join(STATUS)).unwrap_or("E".to_owned())
     }
@@ -405,13 +412,15 @@ impl Channel {
             let mut sum: f32 = 0.0;
             for data in sig.as_slice() {
                 sum = sum + data.value;
+                // println!("VAL:{}",data.value);
             }
-            let count = match self.data.len() {
+            let count = match sig.len() {
                 positive if positive > 0 => positive,
                 _ => 1,
             };
             let mean = sum / count as f32;
             let value = mean;
+            println!("{} VALUE:{} COUNT:{}",self.id(),value,count);
             self.set_value(value);
             self.set_status("M");
         }
@@ -420,7 +429,7 @@ impl Channel {
         Ok(())
     }
     pub fn markdown(&self) -> String {
-        format!("*{}:* `{}` [{}] *{}*\n",self.label(),self.value(),self.unit(),self.status())
+        format!("*{}:* `{}` [{}]   *{}*\n",self.label(),self.value(),self.unit(),self.status())
     }
     pub fn link_value(&self,path:&Path) -> Result<()> {
         symlink(self.path.join(VALUE), &path)?;
@@ -441,11 +450,12 @@ impl Channel {
         Ok(())
     }
     /// Channel short info
-    pub fn info(&self) -> ShortInfo {
+    pub fn info(&self) -> ChanInfo {
         let label = self.label();
         let unit = self.unit();
         let value = self.value();
-        ShortInfo { label, unit, value }
+        let id = self.id();
+        ChanInfo { id,label, unit, value }
     }
 }
 
@@ -469,6 +479,13 @@ impl Channels {
     pub fn new(path:&Path) -> Result<Channels> {
         if !path.is_dir() {
             fs::create_dir_all(path)?;
+            fs::write(path.join(MEASUREMENT_INTERVAL),"1000".as_bytes())?;
+            fs::write(path.join(AVERAGE_INTERVAL),"600".as_bytes())?;
+        }
+        let interval = path.join(MEASUREMENT_INTERVAL);
+        if !interval.is_file() {
+            fs::write(interval,"1000".as_bytes())?;
+            fs::write(path.join(AVERAGE_INTERVAL),"600".as_bytes())?;
         }
         let mut list: Vec<Channel> = Vec::new();
         for entry in fs::read_dir(path)? {
@@ -524,14 +541,14 @@ impl Channels {
         let path = self.path.join(id);
         Channel::new(&path)
     }
-    pub fn get_info(&self, id: &str) -> Option<ShortInfo> {
+    pub fn get_info(&self, id: &str) -> Option<ChanInfo> {
         let path = self.path.join(id);
         if path.is_dir() {
             return Some(Channel::new(&path).info());
         }
         None
     }
-    pub fn infos(&self) -> Result<Vec<ShortInfo>> {
+    pub fn infos(&self) -> Result<Vec<ChanInfo>> {
         let mut chsinfo = Vec::new();
         for entry in fs::read_dir(&self.path)? {
             let entry = entry?;
@@ -613,12 +630,12 @@ impl Channels {
                 return std::time::Duration::from_secs(interval);
             }
         }
-        std::time::Duration::from_secs(180)
+        std::time::Duration::from_secs(600)
     }
     /// Outliers
     /// default 0
     pub fn outliers(&self) -> u16 {
-        if let Ok(outliers) = fs::read_to_string(&self.path().join("outliers")) {
+        if let Ok(outliers) = fs::read_to_string(&self.path().join(OUTLIERS)) {
             if let Ok(outliers) = outliers.parse::<u16>() {
                 return outliers;
             }

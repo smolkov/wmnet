@@ -29,7 +29,7 @@ pub struct Data {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ShortInfo {
+pub struct ChanInfo {
     pub label: String,
     pub unit: String,
     pub value: String,

@@ -12,6 +12,7 @@ use std::path::{Path, PathBuf};
 
 pub const CONFIG_FILE: &str = "wqms.toml";
 
+#[derive(Clone)]
 pub struct Workspace {
     path: PathBuf,
 }
@@ -28,6 +29,13 @@ impl Workspace {
             }
         }
         Ok(())
+    }
+    pub fn truncate(&self,path:&Path) -> PathBuf {
+        if let Ok(p)= path.strip_prefix(&self.path) {
+            p.to_path_buf()
+        }else {
+            path.to_path_buf()
+        }
     }
     pub fn config(&self) -> Config {
         Config::read(&self.path.join("wqms.toml")).unwrap_or(Config::default())
@@ -98,8 +106,8 @@ pub fn setup(ws: &mut Workspace) -> Result<()>{
     if !ws.path.is_dir() {
         log::info!("workspace[{}] setup", ws.path.display());
         fs::create_dir_all(&ws.path)?;
-        let config = Config::default();
-        ws.write_config(&config)?;
+        let _config = Config::default();
+        // ws.write_config(&config)?;
         if let Err(err) = Repository::init(&ws.path) {
             log::error!("workspace[{}] init git error - {}", ws.path.display(), err)
         }

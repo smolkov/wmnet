@@ -108,28 +108,28 @@ fn jumo_modbus(jumo:&Jumo) -> std::io::Result<()> {
         log::error!("read register 0x164D {}", e); 
     } else {
         jumo.set_orp(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
-        log::info!("READ 0x164D: ORP: {}",jumo.orp());
+        // log::info!("READ 0x164D: ORP: {}",jumo.orp());
     }
     if let Err(e) = modbus.read_registers(0x164F,3, &mut tab_reg) {
         jumo.set_ph_value("none").unwrap();
         log::error!("read register 0x164F {}", e); 
     }else {
         jumo.set_ph(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
-        log::info!("READ 0x164F: PH: {}",jumo.ph());
+        // log::info!("READ 0x164F: PH: {}",jumo.ph());
     }
     if let Err(e) = modbus.read_registers(wqms::jumo::EC_REG,3, &mut tab_reg) {
         jumo.set_ec_value("none").unwrap();
         log::error!("read register 0x1651 {}", e); 
     }else {
         jumo.set_ec(tab_reg[0],tab_reg[1]).expect("jumo set orp error");
-        log::info!("READ 0x1651: LEITFAHIGKEIT: {}",jumo.ec());
+        // log::info!("READ 0x1651: LEITFAHIGKEIT: {}",jumo.ec());
     }
     if let Err(e) = modbus.read_registers(0x16BB,3, &mut tab_reg) {
         log::error!("read register 0x16BB {}", e); 
         jumo.set_temp_value("none").unwrap();
     } else {
         jumo.set_temp(tab_reg[0],tab_reg[1]).expect("jumo set temperatur error");
-        log::info!("READ 0x16BB: TEMPERATUR: {}",jumo.temp());
+        // log::info!("READ 0x16BB: TEMPERATUR: {}",jumo.temp());
     }
     Ok(())
 }
@@ -177,7 +177,7 @@ fn main(args: Args) -> Result<()> {
     let mut ec   = Channel::create(path,"ec","EC","mS/cm");
     let mut orp  = Channel::create(path,"orp","ORP","mV");
     let mut temp = Channel::create(path,"temp","Temp","°C");
-    let mut tur  = Channel::create(path,"tur","Tur","NTU");
+    // let mut tur  = Channel::create(path,"tur","Tur","NTU");
     
    
     let ticks     = tick(channels.measurement_interval());
@@ -186,6 +186,12 @@ fn main(args: Args) -> Result<()> {
     let mut start_measurement = std::time::Instant::now();
     // let mut rng = thread_rng();
     // let tur_sumulate = Normal::new(0.0,100.0).unwrap();
+    tox.clear()?;
+    dos.clear()?;
+    ph.clear()?;
+    ec.clear()?;
+    orp.clear()?;
+    temp.clear()?;
     loop {
         select! {
             recv(ticks) -> _ => {
@@ -228,9 +234,9 @@ fn main(args: Args) -> Result<()> {
                 if let Err(e) = temp.push_data(jumo.temp().as_str()){
                     log::error!("push data to channel temp failed- {}", e); 
                 }
-                if let Err(e) = tur.push_data(analog.value().as_str()){
-                    log::error!("push data to channel tur failed- {}", e); 
-                }
+                // if let Err(e) = tur.push_data(analog.value().as_str()){
+                    // log::error!("push data to channel tur failed- {}", e); 
+                // }
                 if start_measurement.elapsed().as_secs() > channels.average_interval().as_secs()  {
                     log::info!("CALCULATE DATA!");
                     if let Err(e)=channels.calculate() {
@@ -268,9 +274,9 @@ fn main(args: Args) -> Result<()> {
                     data.field3 = ph.last_value();
                     data.field4 = ec.last_value();
                     data.field5 = orp.last_value();
-                    data.field6 = temp.last_value();
-                    data.field7 = None;
-                    data.field8 = tur.last_value();
+                    data.field6 = None;
+                    data.field7 = temp.last_value();
+                    data.field8 = None;
                     data.status = channels.status();
                     if let Err(e) = thingspeak.publish(data){
                         log::error!("thingspeak publish data- {}", e);

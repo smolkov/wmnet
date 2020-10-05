@@ -19,9 +19,7 @@ pub async fn help(api:Api,message:Message) -> Result<(),Error> {
     let mut md = message.chat.text(format!("{}",HELP));
     api.send(md.parse_mode(ParseMode::Markdown)).await?;
     Ok(())
-
 }
-
 
 pub async fn tswkey(api: Api, message: Message) -> Result<(),Error> {
     let th = wqms::ws::default().thingspeak().unwrap();
@@ -55,9 +53,12 @@ pub async fn setwifi(api: Api, message: Message) -> Result<(),Error> {
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         if cmd.len() > 2 {
-
+           let wifi = wqms::ws::default().wifi();
+           if let Err(e) = wifi.credentials(cmd[1],cmd[2]) {
+                api.send(message.chat.text(format!("change wifi credential failed - {}",e))).await?;  
+           }
         } else {
-            api.send(message.chat.text(format!("change wifi credential wrond data {}",data))).await?; 
+            api.send(message.chat.text(format!("change wifi credential wrond data {} for example /wifi myssid mypsk",data))).await?; 
             help(api,message).await?;
         }
     }
@@ -92,11 +93,16 @@ pub async fn get(api: Api, message: Message)  -> Result<(), Error> {
         let cmd: Vec<&str> = data.split(' ').collect();
         if cmd.len() > 1 {
             let path = ws.rootdir().join(cmd[1]);
-            match std::fs::read_to_string(path) {
-                 Ok(v)  => {api.send(message.chat.text(v)).await?;},
-                 Err(e) => { println!("Err{}",e);api.send(message.chat.text(format!("get prop {}  - {}",cmd[1],e))).await?;},
+            if !path.file_name().unwrap().to_str().unwrap().starts_with(".") {
+                match std::fs::read_to_string(path) {
+                    Ok(v)  => {api.send(message.chat.text(v)).await?;},
+                    Err(e) => { println!("Err{}",e);api.send(message.chat.text(format!("get prop {}  - {}",cmd[1],e))).await?;},
+                }
+            }else{
+                api.send(message.chat.text(format!("get hidden file"))).await?;
             }
-        }else {
+
+       }else {
             api.send(message.chat.text(format!("set properte wrong format {}
                 /get path/prop
             ",data))).await?;

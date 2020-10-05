@@ -25,7 +25,7 @@ use profont::{ProFont10Point, ProFont12Point,ProFont18Point, ProFont9Point};
 use wqms::iface::*;
 use wqms::network;
 use wqms::Result;
-use wqms::channel::ShortInfo;
+use wqms::channel::ChanInfo;
 use wqms::ws::Workspace;
 
 // use std::thread::sleep;

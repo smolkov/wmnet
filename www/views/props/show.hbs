@@ -1,0 +1,10 @@
+{{#*inline "page"}}
+<h6 class="docs-header">{{city.name}}</h6>
+<p>{{city.country}}</p>
+<p>{{city.description}}</p>
+<p>
+    <a href="/channels">Back</a>
+</p>
+{{/inline}}
+{{! remove whitespaces with ~ }}
+{{~> (parent)~}}

@@ -5,7 +5,7 @@ use linux_embedded_hal::Delay;
 use linux_embedded_hal::{Pin, Spidev};
 extern crate ssd1675;
 use ssd1675::{Builder, Color, Dimensions, Display, GraphicDisplay, Rotation};
-use wqms::channel::ShortInfo;
+use wqms::channel::ChanInfo;
 // Graphics
 #[macro_use]
 extern crate embedded_graphics;
@@ -13,7 +13,7 @@ use embedded_graphics::prelude::*;
 
 // Font
 extern crate profont;
-use profont::{ProFont14Point,ProFont18Point,ProFont10Point, ProFont24Point, ProFont9Point};
+use profont::{ProFont14Point,ProFont10Point, ProFont9Point};
 
 use std::process::Command;
 use std::thread::sleep;
@@ -51,7 +51,7 @@ const LUT: [u8; 70] = [
 
 pub struct State {
     ws: wqms::ws::Workspace,
-    chan: Vec<ShortInfo>,
+    chan: Vec<ChanInfo>,
     online: String,
     status: String,
     host: String,
@@ -64,13 +64,13 @@ pub fn new_state(ws:Workspace) -> State {
     State{
         ws:ws,
         chan: vec!{
-                ShortInfo::new("TOX","NIL"),
-                ShortInfo::new("DOS","NIL"),
-                ShortInfo::new("ph","NIL"),
-                ShortInfo::new("ec","NIL"),
-                ShortInfo::new("orp","NIL"),
-                ShortInfo::new("temp","NIL"),
-                ShortInfo::new("tur","NIL"),
+                ChanInfo::new("TOX","NIL"),
+                ChanInfo::new("DOS","NIL"),
+                ChanInfo::new("ph","NIL"),
+                ChanInfo::new("ec","NIL"),
+                ChanInfo::new("orp","NIL"),
+                ChanInfo::new("temp","NIL"),
+                ChanInfo::new("tur","NIL"),
             },
         online:"offline".to_owned(),
         status:"-------".to_owned(),
@@ -208,10 +208,11 @@ fn main() -> Result<(), std::io::Error> {
             for  ch in chv.list.iter() {
                 if index < 8 {
                     let mut value = ch.value();
-                    value.truncate(5);
+                    value.truncate(4);
+                    
                     // log::info!("{} {}[{}]",ch.value,ch.label,ch.unit); 
                     egtext!(
-                        text = &format!("{}",value.trim()),
+                        text = &format!("{}",value.trim().trim_end_matches('.')),
                         top_left = (CORD[index].0, CORD[index].1),
                         style = text_style!(
                             font = ProFont14Point,

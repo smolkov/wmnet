@@ -1,31 +1,28 @@
-use std::path::{Path,PathBuf};
+use std::path::{Path};
 use telegram_bot::*;
 use telegram_bot::{InputFileUpload};
-use wqms::iface::Class;
+use wqms::{
+    iface::Class,
+    ws::Workspace,
+};
 use std::fs;
 use chrono::{DateTime, Utc}; 
 use glob::glob;
 
 
-fn strip_prefix(path:&Path) -> PathBuf {
-    let prefix = wqms::ws::rootpath();
-    if let Ok(p)= path.strip_prefix(&prefix) {
-        p.to_path_buf()
-    }else {
-        path.to_path_buf()
-    }
-}
 /// list 
-fn list(path:&Path) -> wqms::Result<String> {
+fn list(ws:&Workspace,path:&Path) -> wqms::Result<String> {
     let mut data = String::new();
     data.push_str("data:\n");
     for entry in glob(format!("{}/**/*",path.display()).as_str()).unwrap(){
         let p = entry.unwrap();
         if !p.is_dir() && p.extension().is_none(){
-            let path = strip_prefix(&p);
-            data.push_str(format!("{}",path.display()).as_str());
-            data.push('\n');
-        }
+            let path = ws.truncate(&p);
+            if wqms::util::hiddens(&path)==0 {
+                data.push_str(format!("{}",path.display()).as_str());
+                data.push('\n');
+            }
+       }
     }
     Ok(data)
 }
@@ -36,9 +33,9 @@ pub async fn ls(api: Api, message: Message)  -> Result<(), Error> {
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         let data = match cmd.len() {
-            1 => list(ws.rootdir()).unwrap_or("ls cannot access".to_owned()),
-            2 => list(ws.rootdir().join(cmd[1]).as_path()).unwrap_or("ls cannot access".to_owned()),
-            _ => list(ws.rootdir()).unwrap_or("ls cannot access".to_owned()),
+            1 => list(&ws,ws.rootdir()).unwrap_or("ls cannot access".to_owned()),
+            2 => list(&ws,ws.rootdir().join(cmd[1]).as_path()).unwrap_or("ls cannot access".to_owned()),
+            _ => list(&ws,ws.rootdir()).unwrap_or("ls cannot access".to_owned()),
         };
         api.send(message.chat.text(data.as_str())).await?;
     }
@@ -50,14 +47,16 @@ fn list_csv(path:&Path) -> wqms::Result<String> {
     let mut data = String::new();
     data.push_str("Measurement csv files:\n");
     for entry in glob(format!("{}/*.csv",path.display()).as_str()).unwrap() {
-        let path = strip_prefix(&entry.unwrap());
+        let p = entry.unwrap();
+        let path = wqms::util::truncate_prefix(&p,path);
         data.push_str(format!("{}\n",path.display()).as_str());
     }
     Ok(data)
 }
 /// csv 
 pub async fn csv(api: Api, message:Message) -> Result<(),Error> {
-    let channels = wqms::ws::default().channels().unwrap();
+    let ws = wqms::ws::default();
+    let channels = ws.channels().unwrap();
     if let MessageKind::Text { ref data, .. } = message.kind {
         let cmd: Vec<&str> = data.split(' ').collect();
         match cmd.len() {

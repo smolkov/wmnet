@@ -8,12 +8,12 @@ use wqms::channel::*;
 use wqms::Workspace;
 
 #[get("/")]
-pub fn list(state: State<Workspace>) -> Json<Vec<ShortInfo>> {
+pub fn list(state: State<Workspace>) -> Json<Vec<ChanInfo>> {
     let list = state.channels().list_info().unwrap();
     Json(list)
 }
 #[get("/<name>", format = "json")]
-pub fn get(name: String, state: State<Workspace>) -> Option<Json<ShortInfo>> {
+pub fn get(name: String, state: State<Workspace>) -> Option<Json<ChanInfo>> {
     if let Some(ch) = state.channels().get(name.as_str()) {
         Some(Json(ch.info()))
     } else {

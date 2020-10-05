@@ -19,6 +19,7 @@ pub mod ws;
 pub mod jumo;
 pub mod nitri;
 pub mod analog;
+pub mod prop;
 pub use error::Error;
 /// iotnode library.
 ///

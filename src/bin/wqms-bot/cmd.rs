@@ -18,6 +18,13 @@ Water quality monitoring station *u.s.w*
 /d - download
 /download - download csv file 
 /dl - download last csv file
+
+*🔧 Property*
+/set - `path_to_value` `value`
+/get - `path_to_value`
+/wifi - `ssid` `key`
+/tswkey - `write_key`
+/tsrkey - `read_key`
 "#;
 
 pub async fn help(api: Api, message: Message)  -> Result<(), Error> {
@@ -106,9 +113,10 @@ pub async fn handle(api: Api, message: Message) -> Result<(), Error> {
     // let chat = api.send(message.chat.get_chat()).await?;
     match message.kind {
         MessageKind::Text { ref data, .. } => {
-            println!("COMMAND:{}",data);
-            let cmd: Vec<&str> = data.split(' ').collect();
-            match cmd[0] {
+
+            let cmd: Vec<&str> = data.split(|c| c == ' ' || c == '@').collect();
+            println!("COMMAND:{}",cmd[0]);
+            match cmd[0]{
                 "/start"     => start(api,message).await?,
                 "/help"      => help(api, message).await?,
                 "/status"    => status(api, message).await?,
