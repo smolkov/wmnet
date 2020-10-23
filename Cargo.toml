@@ -1,6 +1,6 @@
 [package]
-name = "wqms"
-version = "0.1.0"
+name = "wmnet"
+version = "0.1.1"
 authors = ["smolkov <sascha.smolkov@gmail.com>"]
 edition = "2018"
 

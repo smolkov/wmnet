@@ -87,9 +87,9 @@ impl Property for Network {}
 // impl Lan for Network {}
 
 impl Network {
-    pub fn new(ws: &Workspace) -> Result<Network> {
-        // Network::setup(&ws.rootdir().join(NETDIR));
-        let path = ws.rootdir().join(NETDIR);
+    pub fn new(wms: &Workspace) -> Result<Network> {
+        // Network::setup(&wms.rootdir().join(NETDIR));
+        let path = wms.rootdir().join(NETDIR);
         let net = Network {
             path: path.to_path_buf(),
         };
@@ -125,21 +125,21 @@ impl Network {
 }
 
 /// Open network directory
-pub fn open(ws: &Workspace) -> Network {
-    let path = ws.rootdir().join(NETDIR);
+pub fn open(wms: &Workspace) -> Network {
+    let path = wms.rootdir().join(NETDIR);
     Network { path }
 }
 /// Setup Network
-pub fn setup(ws: &Workspace) -> Result<Network> {
-    let path = ws.rootdir().join(NETDIR);
+pub fn setup(wms: &Workspace) -> Result<Network> {
+    let path = wms.rootdir().join(NETDIR);
     let net = Network {
         path: path.to_path_buf(),
     };
     if !path.is_dir() {
         net.setup()?;
         net.set_interval(5)?;
-        // net.set_wpasupplicant("wqms", "SeiBereit")?;
-        // net.set_wpa("wqms-setup".to_owned(),"SeiBereit".to_owned())?;
+        // net.set_wpasupplicant("wmnet", "SeiBereit")?;
+        // net.set_wpa("wmnet-setup".to_owned(),"SeiBereit".to_owned())?;
     }
     // static ref SENDER:mpsc::Sender<State> = {
     // let (sender, receiver) = channel();

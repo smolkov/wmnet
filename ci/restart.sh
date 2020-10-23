@@ -1,14 +1,14 @@
 #!/bin/sh
 
-sudo systemctl stop wqms-inky
-sudo systemctl stop wqms-collect
-sudo systemctl stop wqms-bot
-sudo systemctl stop wqms
+sudo systemctl stop wmnet-inky
+sudo systemctl stop wmnet-collect
+sudo systemctl stop wmnet-bot
+sudo systemctl stop wmnet
 # sudo systemctl stop ngrok
 
-sudo systemctl start wqms-inky
-sudo systemctl start wqms-collect
-sudo systemctl start wqms-bot
-sudo systemctl start wqms
+sudo systemctl start wmnet-inky
+sudo systemctl start wmnet-collect
+sudo systemctl start wmnet-bot
+sudo systemctl start wmnet
 # sudo systemctl start ngrok
 

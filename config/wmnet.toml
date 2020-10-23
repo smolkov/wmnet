@@ -1,0 +1,48 @@
+###################################################################
+#                      _                        _                 #
+#           __ _ _   _| |_ ___  _ __ ___   __ _| |_ __ _          #     
+#          / _` | | | | __/ _ \| '_ ` _ \ / _` | __/ _` |         #
+#         | (_| | |_| | || (_) | | | | | | (_| | || (_| |         #
+#          \__,_|\__,_|\__\___/|_| |_| |_|\__,_|\__\__,_|         #       
+#                 AUTOMATISATION WORKING STATION                  #
+#                                                                 #
+#                                                                 #
+# -----------------------------------------------------------------
+# Website: https://automata.io                                    #
+# Docs: https://docs.automata.io                                  #
+# Community: https://automata.io/community                        #
+# Repo: https://github.com/smolkov/automata                       #
+# Lager:https://github.com/smolkov/automata                       #
+# -----------------------------------------------------------------
+# var firebaseConfig = {
+#     apiKey: "AIzaSyAIn-DA1KrMa6jaIiR6w-EO7SQ9cMXffw8",
+#     authDomain: "wmnet-fb.firebaseapp.com",
+#     databaseURL: "https://wmnet-fb.firebaseio.com",
+#     projectId: "wmnet-fb",
+#     storageBucket: "wmnet-fb.appspot.com",
+#     messagingSenderId: "276128813099",
+#     appId: "1:276128813099:web:a190a252dcf7f1dc00da6e",
+#     measurementId: "G-8DB8K45X6Q"
+#   };
+# Default settings
+# For details
+[fb]
+key = "AIzaSyAIn-DA1KrMa6jaIiR6w-EO7SQ9cMXffw8"
+url = "https://wmnet-fb.firebaseio.com"
+uid = "j7GIvMruvwbVpdwLWAnf"
+
+
+[server]
+address = "localhost"
+port = 8000
+keep_alive = 5
+log = "normal"
+# limits = { forms = 32768 }
+
+# Settings for Git
+[git]
+webhook_secret = "secret"
+username = "ci-user"
+ssh_key = "/etc/ssh-keys/automata-key.ecdsa"
+api_token = "token"
+hostname = "github.com"

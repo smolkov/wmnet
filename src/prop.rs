@@ -10,15 +10,15 @@ pub struct Prop {
     pub value: String,
 }
 
-pub fn list(ws:&Workspace) -> Vec<Prop> {
+pub fn list(wms:&Workspace) -> Vec<Prop> {
     let mut props: Vec<Prop> = Vec::new();
     // for entry in glob(format!("{}/**/*",rootpath.display()).as_str()).unwrap(){     
-    for entry in glob::glob(format!("{}/**/*",ws.rootdir().display()).as_str()).unwrap(){     
+    for entry in glob::glob(format!("{}/**/*",wms.rootdir().display()).as_str()).unwrap(){     
         let p = entry.unwrap();
         if !p.is_dir() && p.extension().is_none() {
             let value = std::fs::read_to_string(&p).unwrap();
-            // let name = wqms::util::name_from_path(&p);
-            let path = ws.truncate(&p);
+            // let name = wmnet::util::name_from_path(&p);
+            let path = wms.truncate(&p);
             println!("Check path:{}",path.display());
             if crate::util::hiddens(&path)==0 {
                 let path = format!("{}",path.display());
@@ -30,12 +30,12 @@ pub fn list(ws:&Workspace) -> Vec<Prop> {
     props
 }
 
-pub fn get(ws:&Workspace,id:&str) -> Prop {
+pub fn get(wms:&Workspace,id:&str) -> Prop {
     let idnew = id.replace("-", "/");
 
-    let path = ws.rootdir().join(idnew);
+    let path = wms.rootdir().join(idnew);
     let value = std::fs::read_to_string(&path).unwrap_or(String::from("none")); 
-    let path = ws.truncate(&path);
+    let path = wms.truncate(&path);
     Prop{
         id: id.to_owned(),
         path: format!("{}",path.display()),

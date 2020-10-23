@@ -57,8 +57,8 @@ impl Analog {
     }
 }
 
-pub fn setup(ws: &Workspace) -> Result<Analog> {
-    let path   = ws.rootdir().join("nitri");
+pub fn setup(wms: &Workspace) -> Result<Analog> {
+    let path   = wms.rootdir().join("nitri");
     let analog = Analog{
         path: path.to_path_buf(),
     };
@@ -71,5 +71,5 @@ pub fn setup(ws: &Workspace) -> Result<Analog> {
 
 
 pub fn open() -> Result<Analog> {
-    setup(&crate::ws::default())
+    setup(&crate::wms::default())
 }

@@ -75,13 +75,13 @@ impl Fb {
     }
 }
 
-pub fn open(ws: &Workspace) -> Fb {
-    let path = ws.rootdir().join(Fb::META);
+pub fn open(wms: &Workspace) -> Fb {
+    let path = wms.rootdir().join(Fb::META);
     Fb { path }
 }
 
-pub fn setup(ws: &Workspace) -> Result<Fb> {
-    let path = ws.rootdir().join(Fb::META);
+pub fn setup(wms: &Workspace) -> Result<Fb> {
+    let path = wms.rootdir().join(Fb::META);
     let fb = Fb { path };
     if !fb.path.is_dir() {
         fb.setup()?;

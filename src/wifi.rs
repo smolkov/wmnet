@@ -143,20 +143,20 @@ impl Wifi {
 }
 
 /// Open network directory
-pub fn open(ws: &Workspace) -> Wifi {
-    let path = ws.rootdir().join(DIR);
+pub fn open(wms: &Workspace) -> Wifi {
+    let path = wms.rootdir().join(DIR);
     Wifi { path }
 }
 
 /// Setup Wifi
-pub fn setup(ws: &Workspace) -> Result<Wifi> {
-    let path = ws.rootdir().join(DIR);
+pub fn setup(wms: &Workspace) -> Result<Wifi> {
+    let path = wms.rootdir().join(DIR);
     let wifi = Wifi {
         path: path.to_path_buf(),
     };
     if !wifi.path.is_dir() {
         wifi.setup()?;
-        fs::write(wifi.path().join(SSID), "wqms".as_bytes())?;
+        fs::write(wifi.path().join(SSID), "wmnet".as_bytes())?;
         fs::write(wifi.path().join(KEY), "123456789".as_bytes())?;
         wifi.check()?;
     }

@@ -4,7 +4,7 @@ use std::fs;
 use std::path::Path;
 // use std::str::FromStr;
 
-// pub const DEFAULT_CONF: &str = include_str!("../wqms.toml");
+// pub const DEFAULT_CONF: &str = include_str!("../wmnet.toml");
 const TSWKEY: &str = "RQ1HTKE735B65NVI";
 const TSRKEY: &str = "XZUIDN95GI2ZOSBX";
 const TSCHANNEL: &str = "1114700";

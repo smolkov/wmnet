@@ -39,9 +39,9 @@ impl Class for Web {
 impl Property for Web {}
 
 impl Web {
-    pub fn new(ws: &Workspace) -> Result<Web> {
+    pub fn new(wms: &Workspace) -> Result<Web> {
         let web = Web {
-            path: ws.rootdir().join(Web::META),
+            path: wms.rootdir().join(Web::META),
         };
         Ok(web)
     }
@@ -52,15 +52,15 @@ impl Web {
         Ok(())
     }
 }
-pub fn open(ws: &Workspace) -> Web {
+pub fn open(wms: &Workspace) -> Web {
     let web = Web {
-        path: ws.rootdir().join(Web::META),
+        path: wms.rootdir().join(Web::META),
     };
     web
 }
 
-pub fn setup(ws: &Workspace) -> Result<Web> {
-    let path = ws.rootdir().join(Web::META);
+pub fn setup(wms: &Workspace) -> Result<Web> {
+    let path = wms.rootdir().join(Web::META);
     let web = Web {
         path: path.to_path_buf(),
     };
@@ -71,13 +71,13 @@ pub fn setup(ws: &Workspace) -> Result<Web> {
         if let Err(err) = Repository::init(&wwwdir) {
             log::error!(
                 "workspace[{}] init git repository {} - {}",
-                ws.rootdir().display(),
+                wms.rootdir().display(),
                 wwwdir.display(),
                 err
             )
         }
 
-        // net.set_wpa("wqms-setup".to_owned(),"SeiBereit".to_owned())?;
+        // net.set_wpa("wmnet-setup".to_owned(),"SeiBereit".to_owned())?;
     }
     Ok(web)
 }

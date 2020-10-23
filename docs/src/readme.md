@@ -1,1 +1,1 @@
-# `wqms` - Water quality monitoring station
+# `wmnet` - Water quality monitoring station

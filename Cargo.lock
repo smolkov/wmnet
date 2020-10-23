@@ -3841,8 +3841,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "wqms"
-version = "0.1.0"
+name = "wmnet"
+version = "0.1.1"
 dependencies = [
  "ads1x1x",
  "async-std",

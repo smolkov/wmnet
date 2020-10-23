@@ -1,2 +1,2 @@
-export WQMS_DIR="$HOME/.wqms"
+export WQMS_DIR="$HOME/.wmnet"
 export PATH="$WQMS_DIR/bin:$PATH"

@@ -2,7 +2,7 @@
 
 🚧 _Work In Progress_ 🚧
 
-## 🎙️ Commands `wqms-cli`
+## 🎙️ Commands `wmnet-cli`
 
 - ### 🔩 `setup`
 
@@ -18,7 +18,7 @@
       - `value`: value to set
 
 ```
-wqms set network/interface wlan0
+wmnet set network/interface wlan0
 ```
 
 ⚙

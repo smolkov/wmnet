@@ -168,8 +168,8 @@ impl Jumo {
     }
 }
 
-pub fn setup(ws: &Workspace) -> Result<Jumo> {
-    let path = ws.rootdir().join("jumo");
+pub fn setup(wms: &Workspace) -> Result<Jumo> {
+    let path = wms.rootdir().join("jumo");
     let jumo = Jumo {
         path: path.to_path_buf(),
     };
@@ -179,5 +179,5 @@ pub fn setup(ws: &Workspace) -> Result<Jumo> {
 
 
 pub fn open() -> Result<Jumo> {
-    setup(&crate::ws::default())
+    setup(&crate::wms::default())
 }

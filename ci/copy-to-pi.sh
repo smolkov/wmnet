@@ -4,9 +4,9 @@ set -e
 ARCH=arm-unknown-linux-gnueabihf
 
 TARGET=target/$ARCH/release
-WQMS_BOT=$TARGET/wqms-bot
-WQMS_COLLECT=$TARGET/wqms-collect
-WQMS_INKY=$TARGET/wqms-inky
+WQMS_BOT=$TARGET/wmnet-bot
+WQMS_COLLECT=$TARGET/wmnet-collect
+WQMS_INKY=$TARGET/wmnet-inky
 HOST=192.168.0.5
 PORT=22
 

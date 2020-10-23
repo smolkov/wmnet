@@ -1,1 +1,1 @@
-pub fn workspace(ws: &Workspace) {}
+pub fn workspace(wms: &Workspace) {}

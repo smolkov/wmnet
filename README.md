@@ -1,11 +1,11 @@
-# `wqms`
+# `wmnet`
 
 🚧 _Work In Progress_ 🚧
 
 ![Minimum Rust Version][min-rust-badge]
 ![pipeline status](https://travis-ci.org/smolkov/iotnode.svg?branch=master)
 
-## 🎙️ Commands `wqms-cli`
+## 🎙️ Commands `wmnet-cli`
 
 - ### 🔩 `setup`
 
@@ -21,7 +21,7 @@
       - `value`: value to set
 
 ```
-wqms set network/interface wlan0
+wmnet set network/interface wlan0
 ```
 
 ⚙
@@ -94,12 +94,12 @@ Alternatively use `-p` to set the port to a non-privileged one.
 
 ### Systemd Service
 
-Copy `wqms.service` to `/etc/systemd/system/`.
+Copy `wmnet.service` to `/etc/systemd/system/`.
 Copy `ngrok.service` to `/etc/systemd/system/`.
 
     sudo systemctl daemon-reload
     sudo systemctl enable ngrok.service
-    sudo systemctl enable --now wqms.service
+    sudo systemctl enable --now wmnet.service
     sudo systemctl enable wqmsbot.service
     sudo 
 <!-- Badges -->

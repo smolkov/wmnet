@@ -735,7 +735,7 @@ impl Channels {
     }
 }
 
-pub fn setup(ws: &Workspace) -> Result<Channels> {
-    let path = ws.rootdir().join("channels");
+pub fn setup(wms: &Workspace) -> Result<Channels> {
+    let path = wms.rootdir().join("channels");
     Channels::new(&path)
 }

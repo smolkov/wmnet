@@ -2,7 +2,7 @@
 
 ## WLAN
 
-ssi `wqms`
+ssi `wmnet`
 psk `wqms1234!`
 
 ## DHCP Server

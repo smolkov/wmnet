@@ -61,8 +61,8 @@ impl Telegram {
     }
 }
 
-pub fn setup(ws: &Workspace) -> Result<Telegram> {
-    let path = ws.rootdir().join("telegram");
+pub fn setup(wms: &Workspace) -> Result<Telegram> {
+    let path = wms.rootdir().join("telegram");
     let telegram = Telegram {
         path: path.to_path_buf(),
     };
@@ -76,5 +76,5 @@ pub fn setup(ws: &Workspace) -> Result<Telegram> {
 
 
 pub fn open() -> Result<Telegram> {
-    setup(&crate::ws::default())
+    setup(&crate::wms::default())
 }

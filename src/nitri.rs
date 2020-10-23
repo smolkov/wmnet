@@ -111,8 +111,8 @@ impl Nitri {
     }
 }
 
-pub fn setup(ws: &Workspace) -> Result<Nitri> {
-    let path = ws.rootdir().join("nitri");
+pub fn setup(wms: &Workspace) -> Result<Nitri> {
+    let path = wms.rootdir().join("nitri");
     let nitri = Nitri {
         path: path.to_path_buf(),
     };
@@ -125,5 +125,5 @@ pub fn setup(ws: &Workspace) -> Result<Nitri> {
 
 
 pub fn open() -> Result<Nitri> {
-    setup(&crate::ws::default())
+    setup(&crate::wms::default())
 }

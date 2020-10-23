@@ -54,13 +54,13 @@ impl GoogleCheets {
     }
 }
 
-pub fn open(ws: &Workspace) -> GoogleCheets {
-    let path = ws.rootdir().join(GoogleCheets::META);
+pub fn open(wms: &Workspace) -> GoogleCheets {
+    let path = wms.rootdir().join(GoogleCheets::META);
     GoogleCheets { path }
 }
 
-pub fn setup(ws: &Workspace) -> Result<GoogleCheets> {
-    let path = ws.rootdir().join(GoogleCheets::META);
+pub fn setup(wms: &Workspace) -> Result<GoogleCheets> {
+    let path = wms.rootdir().join(GoogleCheets::META);
     let fb = GoogleCheets { path };
     if !fb.path.is_dir() {
         fb.setup()?;

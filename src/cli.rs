@@ -114,7 +114,7 @@ pub enum Cmd {
 
 ///automata command argument
 #[derive(Debug, StructOpt)]
-#[structopt(name = "wqms", about = "🧰wqms console interface usage.")]
+#[structopt(name = "wmnet", about = "🧰wmnet console interface usage.")]
 pub struct Args {
     ///📢 subcommands
     #[structopt(subcommand, about = "📢automata commands list")]

@@ -162,8 +162,8 @@ impl ThingSpeak {
         self.transmit()
     }
 }
-pub fn setup(ws: &Workspace) -> Result<ThingSpeak> {
-    let path = ws.rootdir().join("thingspeak");
+pub fn setup(wms: &Workspace) -> Result<ThingSpeak> {
+    let path = wms.rootdir().join("thingspeak");
     let thingspeak = ThingSpeak {
         path: path.to_path_buf(),
     };

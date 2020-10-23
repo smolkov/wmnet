@@ -15,7 +15,7 @@ pub mod telegram;
 pub mod util;
 pub mod web;
 pub mod wifi;
-pub mod ws;
+pub mod wms;
 pub mod jumo;
 pub mod nitri;
 pub mod analog;
@@ -27,7 +27,7 @@ pub use error::Error;
 pub use interface::{Class, Property, Statistic};
 pub type Result<T> = std::result::Result<T, Error>;
 pub use config::Config;
-pub use ws::Workspace;
+pub use wms::Workspace;
 pub use thingspeak::ThingSpeak;
 
 

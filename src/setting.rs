@@ -33,8 +33,8 @@ impl Class for Settings {
 impl Property for Settings {}
 
 
-pub fn setup(ws: &Workspace) -> Result<Settings> {
-    let path = ws.rootdir().join(Settings::META);
+pub fn setup(wms: &Workspace) -> Result<Settings> {
+    let path = wms.rootdir().join(Settings::META);
     let settings = Settings {
         path: path.to_path_buf(),
     };

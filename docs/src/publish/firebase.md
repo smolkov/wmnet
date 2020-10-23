@@ -23,10 +23,10 @@
   // Your web app's Firebase configuration
   var firebaseConfig = {
     apiKey: "AIzaSyAIn-DA1KrMa6jaIiR6w-EO7SQ9cMXffw8",
-    authDomain: "wqms-fb.firebaseapp.com",
-    databaseURL: "https://wqms-fb.firebaseio.com",
-    projectId: "wqms-fb",
-    storageBucket: "wqms-fb.appspot.com",
+    authDomain: "wmnet-fb.firebaseapp.com",
+    databaseURL: "https://wmnet-fb.firebaseio.com",
+    projectId: "wmnet-fb",
+    storageBucket: "wmnet-fb.appspot.com",
     messagingSenderId: "276128813099",
     appId: "1:276128813099:web:a190a252dcf7f1dc00da6e",
     measurementId: "G-8DB8K45X6Q"
