@@ -3,7 +3,7 @@ use crate::Workspace;
 use crate::{Class, Property};
 // use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+// use std::collections::HashMap;
 // use std::fmt::Display;
 use std::fs;
 use std::time::{Duration, SystemTime};
@@ -53,12 +53,12 @@ pub struct Scale {
 }
 
 impl Scale {
-    pub fn new(from_min: f32, from_max: f32, to_min: f32, to_max: f32) -> Scale {
-        Scale {
-            slope: 1.0,
-            intercept: 0.0,
-        }
-    }
+    // pub fn new(from_min: f32, from_max: f32, to_min: f32, to_max: f32) -> Scale {
+    //     Scale {
+    //         slope: 1.0,
+    //         intercept: 0.0,
+    //     }
+    // }
     pub fn scale(&self,value:f32) -> f32 {
         value*self.slope + self.intercept
     }

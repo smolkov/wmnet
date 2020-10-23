@@ -1,30 +1,25 @@
 {{#*inline "page"}}
     {{#if nets}}
         <div class="relative md:pt-32 pb-32 pt-12">
-            <div class="px-4 md:px-10 mx-auto w-full">
+            <div class="px-2 md:px-10 mx-auto w-full">
                 <div>
                     <div class="flex flex-wrap">
                         {{#each nets}}
-                            <div class="w-full lg:w-6/12 xl:w-3/12 px-4 py-4">
+                            <div class="w-full lg:w-6/12 xl:w-3/12 px-1 py-1">
                                 <div
-                                    class="relative flex flex-col min-w-0 break-words bg-white rounded mb-6 xl:mb-0 shadow-lg">
-                                    <a class="text-gray-800 hover:text-gray-600 text-xs uppercase py-3 font-bold block"
+                                    class="relative flex flex-col min-w-0 break-words bg-white rounded mb-3 xl:mb-0 shadow-md">
+                                    <a class="text-gray-800 hover:text-gray-600 text-xs uppercase font-bold block"
                                         href="/wifi/{{this.ssid}}">
-                                        <div class="flex-auto p-4">
+                                        <div class="flex-auto p-2">
                                             <div class="flex flex-wrap">
-                                                <div class="relative w-full pr-4 max-w-full flex-grow flex-1">
-                                                    <h5 class="text-gray-500 uppercase font-bold text-xs">
-                                                        {{this.signal_level}}
-                                                    </h5>
-                                                    <span class="font-semibold text-xl text-gray-800">
+                                                <div class="relative w-full pr-2 max-w-full flex-grow flex-1">
+                                                    <p class="text-gray-500 normal-case">
+                                                        {{this.quality}}
+                                                    </p>
+                                                    <p class="text-lg font-bold normal-case">
                                                         {{this.ssid}}
-                                                    </span>
+                                                    </p>
                                                 </div>
-                                                {{!-- <div class="relative w-auto pl-4 flex-initial">
-                          <div class="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 shadow-lg rounded-full bg-red-500">
-                            <i class="far fa-chart-bar"></i>
-                          </div>
-                        </div> --}}
                                             </div>
                                             <p class="text-sm text-gray-500 mt-4">
                                                 <span class="text-green-500 mr-2">
@@ -32,6 +27,9 @@
                                                 </span>
                                                 <span class="whitespace-no-wrap">
                                                     {{this.security}}
+                                                </span>
+                                                <span class="whitespace-no-wrap">
+                                                    {{this.frequency}}
                                                 </span>
                                             </p>
                                         </div>

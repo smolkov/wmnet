@@ -51,6 +51,7 @@ const LUT: [u8; 70] = [
 
 pub struct State {
     ws: wqms::ws::Workspace,
+    name: String,
     chan: Vec<ChanInfo>,
     online: String,
     status: String,
@@ -63,6 +64,7 @@ pub struct State {
 pub fn new_state(ws:Workspace) -> State {
     State{
         ws:ws,
+        name:"none".to_owned(),
         chan: vec!{
                 ChanInfo::new("TOX","NIL"),
                 ChanInfo::new("DOS","NIL"),
@@ -93,6 +95,11 @@ impl State {
         self.changed = false;
         let online = wqms::network::status();
         let host   = wqms::network::hostname();
+        let name   = self.ws.name();
+        if self.name != name {
+            self.name = name;
+            self.changed();
+        }
         if self.online != online {
             self.online = online;
             self.changed();
@@ -182,14 +189,14 @@ fn main() -> Result<(), std::io::Error> {
     let mut display = GraphicDisplay::new(display, &mut black_buffer, &mut red_buffer);
     const VAL: i32 = 20;
     const CORD: [(i32, i32); 8] = [
-        (1, 1),
-        (54, 1),
-        (107, 1),
-        (160, 1),
-        (1, 40),
-        (54, 40),
-        (107, 40),
-        (160, 40),
+        (1, 14),
+        (54, 14),
+        (107, 14),
+        (160, 14),
+        (1, 44),
+        (54, 44),
+        (107, 44),
+        (160, 44),
     ];
     // Main loop. Displays CPU temperature, uname, and uptime every minute with a red Raspberry Pi
     // header.
@@ -203,6 +210,28 @@ fn main() -> Result<(), std::io::Error> {
         if state.is_changed(){
             display.reset(&mut delay).expect("error resetting display");
             display.clear(Color::White);
+            // egtext!(
+            //     text = &format!("station:"),
+            //     top_left = (110, 2),
+            //     style = text_style!(
+            //         font = ProFont9Point,
+            //         background_color = Color::White,
+            //         text_color = Color::Black,
+            //     )
+            // ).draw(&mut display)
+            // .expect("error drawing text");
+
+            egtext!(
+                text = &format!(" {}",ws.name().trim()),
+                top_left = (1, 1),
+                style = text_style!(
+                    font = ProFont10Point,
+                    background_color = Color::Red,
+                    text_color = Color::White,
+                )
+            )
+            .draw(&mut display)
+            .expect("error drawing text");
             let chv = ws.channels().unwrap();
             let mut index = 0;
             for  ch in chv.list.iter() {
@@ -239,7 +268,7 @@ fn main() -> Result<(), std::io::Error> {
                     //         .with_stroke(Some(Color::Red))
                     //         .with_fill(Some(Color::White))
                     //         .translate(Coord::new(CORD[index].0, CORD[index].1))
-                    //         .into_iter(),
+                   //         .into_iter(),
                     // );
                     // display.draw(
                     //     ProFont10Point::render_str(ch.label().as_str())
@@ -251,31 +280,8 @@ fn main() -> Result<(), std::io::Error> {
                 }
             }
             egtext!(
-                text = &format!("status: {}",chv.status().trim()),
-                top_left = (1, 73),
-                style = text_style!(
-                    font = ProFont9Point,
-                    background_color = Color::White,
-                    text_color = Color::Red,
-                )
-            )
-            .draw(&mut display)
-            .expect("error drawing text");
-            egtext!(
-                text = &format!("{}", state.online.trim()),
-                top_left = (10, 83),
-                style = text_style!(
-                    font = ProFont9Point,
-                    background_color = Color::White,
-                    text_color = Color::Red,
-                )
-            )
-            .draw(&mut display)
-            .expect("error drawing text");
-
-            egtext!(
-                text = &format!("ip: {}",state.host.trim()),
-                top_left = (10, 93),
+                text = &format!("status:"),
+                top_left = (1, 80),
                 style = text_style!(
                     font = ProFont9Point,
                     background_color = Color::White,
@@ -284,11 +290,22 @@ fn main() -> Result<(), std::io::Error> {
             )
             .draw(&mut display)
             .expect("error drawing text");
+            egtext!(
+                text = &format!("{}",chv.status().trim()),
+                top_left = (47, 80),
+                style = text_style!(
+                    font = ProFont9Point,
+                    background_color = Color::Red,
+                    text_color = Color::White,
+                )
+            )
+            .draw(&mut display)
+            .expect("error drawing text");
            
             if let Some(uptime) = read_uptime() {
                 egtext!(
                     text = uptime.trim(),
-                    top_left = (120, 83),
+                    top_left = (87, 80),
                     style = text_style!(
                         font = ProFont9Point,
                         background_color = Color::White,
@@ -299,6 +316,30 @@ fn main() -> Result<(), std::io::Error> {
                 .expect("error drawing text");
             }
 
+            egtext!(
+                text = &format!("ip: {}",state.host.trim()),
+                top_left = (1, 93),
+                style = text_style!(
+                    font = ProFont9Point,
+                    background_color = Color::White,
+                    text_color = Color::Black,
+                )
+            )
+            .draw(&mut display)
+            .expect("error drawing text");
+           
+           
+            egtext!(
+                text = &format!("{}", state.online.trim()),
+                top_left = (170, 93),
+                style = text_style!(
+                    font = ProFont9Point,
+                    background_color = Color::Red,
+                    text_color = Color::White,
+                )
+            )
+            .draw(&mut display)
+            .expect("error drawing text");
 
             display.update(&mut delay).expect("error updating display");
             println!("Update...");

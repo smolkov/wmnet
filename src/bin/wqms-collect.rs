@@ -16,13 +16,13 @@ use wqms::jumo::Jumo;
 use wqms::nitri::Nitri;
 use wqms::channel::Channel;
 use wqms::iface::Class;
-use wqms::analog::Analog;
+// use wqms::analog::Analog;
 use crossbeam::channel::{bounded, select, tick, Receiver};
 // use chrono::{DateTime, Datelike, Utc};
 // use serde::{Deserialize, Serialize};
 
-use rand_distr::{Normal, Distribution};
-use rand::thread_rng;
+// use rand_distr::{Normal, Distribution};
+// use rand::thread_rng;
 
 
 
@@ -133,28 +133,28 @@ fn jumo_modbus(jumo:&Jumo) -> std::io::Result<()> {
     }
     Ok(())
 }
-/// Analog device
-fn read_tur(analog: &Analog) -> Result<()> {
-    use embedded_hal::adc::OneShot;
-    use linux_embedded_hal::I2cdev;
-    use nb::block;
-    use ads1x1x::{channel, Ads1x1x, SlaveAddr};
+// Analog device
+// fn read_tur(analog: &Analog) -> Result<()> {
+//     use embedded_hal::adc::OneShot;
+//     use linux_embedded_hal::I2cdev;
+//     use nb::block;
+//     use ads1x1x::{channel, Ads1x1x, SlaveAddr};
     
-    match I2cdev::new(analog.addr().as_str()) {
-        Ok(dev) => {
-            let address = SlaveAddr::default();
-            let mut adc = Ads1x1x::new_ads1013(dev, address);
-            let value   = block!(adc.read(&mut channel::DifferentialA0A1)).unwrap() as f32;
-            analog.set_value(value)?;
-            let _dev = adc.destroy_ads1013();
-        },
-        Err(e) => {
-            log::error!("Open I2c device failed {}", e); 
-        }
-    }
+//     match I2cdev::new(analog.addr().as_str()) {
+//         Ok(dev) => {
+//             let address = SlaveAddr::default();
+//             let mut adc = Ads1x1x::new_ads1013(dev, address);
+//             let value   = block!(adc.read(&mut channel::DifferentialA0A1)).unwrap() as f32;
+//             analog.set_value(value)?;
+//             let _dev = adc.destroy_ads1013();
+//         },
+//         Err(e) => {
+//             log::error!("Open I2c device failed {}", e); 
+//         }
+//     }
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 #[paw::main]
 fn main(args: Args) -> Result<()> {

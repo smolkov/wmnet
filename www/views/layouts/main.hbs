@@ -9,132 +9,35 @@
   <link rel="apple-touch-icon" sizes="76x76" href="./assets/img/apple-icon.png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.css" />
   <link rel="stylesheet" href="./assets/vendor/@fortawesome/fontawesome-free/css/all.min.css" />
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/gh/creativetimofficial/tailwind-starter-kit/compiled-tailwind.min.css" />
+  <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet" />
   <title>Dashboard Water quality monitoring station</title>
 </head>
 
 <body class="text-gray-800 antialiased">
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root">
-    <nav
-      class="md:left-0 md:block md:fixed md:top-0 md:bottom-0 md:overflow-y-auto md:flex-row md:flex-no-wrap md:overflow-hidden shadow-xl bg-white flex flex-wrap items-center justify-between relative md:w-64 z-10 py-4 px-6">
-      <div class="md:flex-col md:items-stretch md:min-h-full md:flex-no-wrap px-0 flex flex-wrap items-center justify-between w-full mx-auto">
-        <button
-          class="cursor-pointer text-black opacity-50 md:hidden px-3 py-1 text-xl leading-none bg-transparent rounded border border-solid border-transparent"
-          type="button" onclick="toggleNavbar('example-collapse-sidebar')">
-          <i class="fas fa-bars"></i></button>
-        <a class="md:block text-left md:pb-2 text-gray-700 mr-0 inline-block whitespace-no-wrap text-sm uppercase font-bold p-4 px-0"
-          href="javascript:void(0)">
-          WQMS
-        </a>
-        <div
-          class="md:flex md:flex-col md:items-stretch md:opacity-100 md:relative md:mt-4 md:shadow-none shadow absolute top-0 left-0 right-0 z-40 overflow-y-auto overflow-x-hidden h-auto items-center flex-1 rounded hidden"
-          id="example-collapse-sidebar">
-          <div class="md:min-w-full md:hidden block pb-4 mb-4 border-b border-solid border-gray-300">
-            <div class="flex flex-wrap">
-              <div class="w-6/12">
-                <a class="md:block text-left md:pb-2 text-gray-700 mr-0 inline-block whitespace-no-wrap text-sm uppercase font-bold p-4 px-0"
-                  href="javascript:void(0)">
-                  WQMS
-                </a>
-              </div>
-              <div class="w-6/12 flex justify-end">
-                <button type="button"
-                  class="cursor-pointer text-black opacity-50 md:hidden px-3 py-1 text-xl leading-none bg-transparent rounded border border-solid border-transparent"
-                  onclick="toggleNavbar('example-collapse-sidebar')">
-                  <i class="fas fa-times">WQMS</i>
-                </button>
-              </div>
-            </div>
-          </div>
-          <ul class="md:flex-col md:min-w-full flex flex-col list-none">
-            <li class="items-center">
-              <a class="text-pink-500 hover:text-pink-600 text-xs uppercase py-3 font-bold block" href="/"><i
-                  class="fas fa-tv opacity-75 mr-2 text-sm"></i>
-                Dashboard</a>
-            </li>
-            <li class="items-center">
-              <a class="text-gray-800 hover:text-gray-600 text-xs uppercase py-3 font-bold block" href="/channels"><i
-                  class="fas fa-newspaper text-gray-500 mr-2 text-sm"></i>
-                Channels</a>
-            </li>
-            <li class="items-center">
-              <a class="text-gray-800 hover:text-gray-600 text-xs uppercase py-3 font-bold block" href="/props"><i
-                  class="fas fa-user-circle text-gray-500 mr-2 text-sm"></i>
-                Propertys</a>
-            </li>
-            <li class="items-center">
-              <a class="text-gray-800 hover:text-gray-600 text-xs uppercase py-3 font-bold block" href="/wifi"><i
-                  class="fas fa-user-circle text-gray-500 mr-2 text-sm"></i>
-                Wifi</a>
-            </li>
-            {{!-- <li class="items-center">
-              <a class="text-gray-800 hover:text-gray-600 text-xs uppercase py-3 font-bold block" href="#/login"><i
-                  class="fas fa-fingerprint text-gray-500 mr-2 text-sm"></i>
-                Login</a>
-            </li>
-            <li class="items-center">
-              <a class="text-gray-400 text-xs uppercase py-3 font-bold block" href="#pablo"><i
-                  class="fas fa-clipboard-list text-gray-400 mr-2 text-sm"></i>
-                Register (soon)</a>
-            </li>
-            <li class="items-center">
-              <a class="text-gray-400 text-xs uppercase py-3 font-bold block" href="#pablo"><i
-                  class="fas fa-tools text-gray-400 mr-2 text-sm"></i>
-                Settings (soon)</a>
-            </li> --}}
-          </ul>
+    <nav class="flex items-center justify-between flex-wrap bg-teal-500 p-6">
+      <div class="flex items-center flex-shrink-0 text-white mr-6">
+        <svg class="fill-current h-8 w-8 mr-2" width="54" height="54" viewBox="0 0 54 54"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M13.5 22.1c1.8-7.2 6.3-10.8 13.5-10.8 10.8 0 12.15 8.1 17.55 9.45 3.6.9 6.75-.45 9.45-4.05-1.8 7.2-6.3 10.8-13.5 10.8-10.8 0-12.15-8.1-17.55-9.45-3.6-.9-6.75.45-9.45 4.05zM0 38.3c1.8-7.2 6.3-10.8 13.5-10.8 10.8 0 12.15 8.1 17.55 9.45 3.6.9 6.75-.45 9.45-4.05-1.8 7.2-6.3 10.8-13.5 10.8-10.8 0-12.15-8.1-17.55-9.45-3.6-.9-6.75.45-9.45 4.05z" />
+        </svg>
+        <span class="font-semibold text-xl tracking-tight">Databox</span>
+      </div>
+      <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
+        <div class="text-sm lg:flex-grow">
+          <a href="/" class="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">Dashboard</a>
+          <a href="/channels"
+            class="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">Channels</a>
+          <a href="/props" class="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">Propertys</a>
+          <a href="/wifi" class="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">Wifi</a>
         </div>
       </div>
     </nav>
     <div class="relative md:ml-64 bg-gray-100">
       <!-- Header -->
       {{~> page}}
-      <footer class="block py-4">
-        <div class="container mx-auto px-4">
-          <hr class="mb-4 border-b-1 border-gray-300" />
-          <div class="flex flex-wrap items-center md:justify-between justify-center">
-            <div class="w-full md:w-4/12 px-4">
-              <div class="text-sm text-gray-600 font-semibold py-1">
-                Copyright © <span id="javascript-date"></span>
-                <a href="https://www.creative-tim.com"
-                  class="text-gray-600 hover:text-gray-800 text-sm font-semibold py-1">
-                  Creative Tim
-                </a>
-              </div>
-            </div>
-            <div class="w-full md:w-8/12 px-4">
-              <ul class="flex flex-wrap list-none md:justify-end  justify-center">
-                <li>
-                  <a href="https://www.creative-tim.com"
-                    class="text-gray-700 hover:text-gray-900 text-sm font-semibold block py-1 px-3">
-                    Creative Tim
-                  </a>
-                </li>
-                <li>
-                  <a href="https://www.creative-tim.com/presentation"
-                    class="text-gray-700 hover:text-gray-900 text-sm font-semibold block py-1 px-3">
-                    About Us
-                  </a>
-                </li>
-                <li>
-                  <a href="http://blog.creative-tim.com"
-                    class="text-gray-700 hover:text-gray-900 text-sm font-semibold block py-1 px-3">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="https://github.com/creativetimofficial/tailwind-starter-kit/blob/master/LICENSE.md"
-                    class="text-gray-700 hover:text-gray-900 text-sm font-semibold block py-1 px-3">
-                    MIT License
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js" charset="utf-8"></script>

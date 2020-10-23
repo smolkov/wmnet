@@ -168,7 +168,7 @@ pub fn status() -> String {
     {
         Ok(status) => {
             if status.success() {
-                "online".to_owned()
+                " online".to_owned()
             } else {
                 "offline".to_owned()
             }

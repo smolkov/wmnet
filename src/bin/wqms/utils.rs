@@ -1,3 +1,5 @@
+
+#[allow(dead_code)]
 pub(crate) async fn deserialize_body<T>(request: &mut crate::Request) -> tide::Result<T>
 where
     T: serde::de::DeserializeOwned,
@@ -27,7 +29,3 @@ impl AsRoute for String {
         self.into()
     }
 }
-
-// pub fn redirect_to(record: impl AsRoute) -> tide::Response {
-//     tide::Redirect::new(record.as_route()).into()
-// }

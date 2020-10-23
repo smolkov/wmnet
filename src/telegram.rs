@@ -1,9 +1,9 @@
 use crate::Result;
 use crate::{Workspace};
 use std::fs;
-use std::path::{Path};
-use serde::{Deserialize, Serialize};
-use chrono::{Utc};
+// use std::path::{Path};
+// use serde::{Deserialize, Serialize};
+// use chrono::{Utc};
 
 // use serde::{Deserialize, Serialize};
 // use std::sync::mpsc::{self, channel};
@@ -24,7 +24,7 @@ use std::path::{PathBuf};
 /// Station mode
 ///
 ///
-const APIKEY: &str = "1228714195:AAFDj9wjGwiejpUW89FyZ4unyl0wmE93Nr4";
+const APIKEY: &str = "none:none";
 
 
 

@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::Result;
-use crate::{channel::Channels,ThingSpeak,telegram::Telegram, network::Network, web::Web, wifi::Wifi};
+use crate::{channel::Channels,ThingSpeak,telegram::Telegram, web::Web, wifi::Wifi};
 use git2::Repository;
 use std::env;
 
@@ -11,11 +11,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 pub const CONFIG_FILE: &str = "wqms.toml";
+pub const DEVNAME: &str = "name";
 
 #[derive(Clone)]
 pub struct Workspace {
     path: PathBuf,
 }
+
 
 impl Workspace {
     pub fn canonicalize(&mut self) -> Result<()> {
@@ -28,6 +30,13 @@ impl Workspace {
                 );
             }
         }
+        Ok(())
+    }
+    pub fn name(&self) -> String {
+        fs::read_to_string(self.path.join(DEVNAME)).unwrap_or("unknown".to_owned())
+    }
+    pub fn set_name(&self,device: &str) -> Result<()> {
+        fs::write(self.path.join(DEVNAME), device.trim().as_bytes())?;
         Ok(())
     }
     pub fn truncate(&self,path:&Path) -> PathBuf {

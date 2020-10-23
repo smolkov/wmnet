@@ -63,7 +63,7 @@ pub async fn edit(req: crate::Request) -> tide::Result {
     Ok(hb.render_response_ext("channels/form", &data, "html")?)
 }
 
-pub async fn update(req: crate::Request) -> tide::Result {
+pub async fn update(_req: crate::Request) -> tide::Result {
     // let mut city: City = req.body_form().await?;
     // let state = &req.state();
     // let db = &state.client.database("test");
