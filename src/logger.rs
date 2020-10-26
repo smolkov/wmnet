@@ -1,4 +1,4 @@
-//! WQMS logging infrastructure.
+//! WMS logging infrastructure.
 
 use crate::Workspace;
 
@@ -11,3 +11,4 @@ pub fn debug() {
 pub fn trace() {
     femme::with_level(log::LevelFilter::Trace);
 }
+

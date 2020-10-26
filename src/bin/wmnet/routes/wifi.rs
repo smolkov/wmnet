@@ -1,14 +1,13 @@
-// use tide::{Body,Response};
-// use crate::models::Prop;
+use tide::{Body,Response};
 use handlebars::to_json;
 use serde_json::value::Map;
+use wmnet::wifi::*;
 use tide_handlebars::prelude::*;
-// use wmnet::wifi::Wlan;
 
 pub async fn index(req: crate::Request) -> tide::Result {
     log::info!("Tracing Started");
     let state = &req.state();
-    let nets = wmnet::wifi::scan();
+    let nets = wmnet::wifi::scan("wlan0")?;
     let hb = &state.registry;
     let mut data = Map::new();
     data.insert("title".to_string(), to_json("Wifi setting"));
@@ -48,4 +47,21 @@ pub async fn update(_req: crate::Request) -> tide::Result {
     // let city_id = city.id.unwrap();
 
     Ok(tide::Redirect::new(format!("/wifi")).into())
+}
+
+
+pub async fn list(_req: crate::Request) -> tide::Result {
+    // let state = &req.state();
+    let wifi = wmnet::wifi::scan("wlan0")?;
+    Ok(Response::builder(tide::StatusCode::Ok)
+    .body(Body::from_json(&wifi)?)
+    .build()) 
+}
+
+pub async fn connect(mut req: crate::Request) -> tide::Result {
+    // let state = &req.state();
+    let wifi:WifiConnect  = req.body_form().await?;
+    // let props = wmnet::prop::list(&state.wms);
+    wmnet::wifi::connect(&wifi)?;
+    Ok(Response::builder(tide::StatusCode::Ok).build()) 
 }

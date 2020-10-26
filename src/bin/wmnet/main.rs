@@ -6,9 +6,12 @@
 use handlebars::Handlebars;
 // use tide_handlebars::prelude::*;
 use async_std::sync::Arc;
+mod app;
 mod utils;
 mod routes;
 mod models;
+use async_std::task;
+use tide::{sessions::SessionMiddleware, Redirect};
 
 #[derive(Clone)]
 pub struct State {
@@ -16,6 +19,18 @@ pub struct State {
     wms: wmnet::wms::Workspace,
     client: redis::Client,
     registry: Arc<Handlebars<'static>>,
+}
+
+impl State {
+    // pub async fn rendner(&self,name:&str,data: &serde_json::Value) -> Result<tide::Body>    {
+          /*
+         * In debug mode, reload the templates on ever render to avoid
+         * needing a restart
+         */
+        // let hb = self.registry;
+        // let view = self.registry.render(name, data)?;
+        // Ok(tide::Body::from_string(view))
+    // }
 }
 
 pub type Request = tide::Request<State>;
@@ -37,20 +52,24 @@ pub type Request = tide::Request<State>;
 //         session_secret.as_bytes(),
 //     ))
 // }
-
 #[async_std::main]
 async fn main() -> tide::Result<()> {
     tide::log::start();
     let client = redis::Client::open("redis://127.0.0.1/").unwrap();
     let wms = wmnet::wms::default();
-    // tide::log::with_level(tide::log::LevelFilter::Info);
-    // let db = db_connection().await?;
+    // create tunnel
+    task::spawn(async {
+        match wmnet::ssh::tunnel().await {
+            Ok(_) => log::info!("tunnel ok "),
+            Err(e) => log::warn!("tunnel error {}",e)
+        }
+    });
     let mut hb = Handlebars::new();
     hb.register_templates_directory(".hbs", "./www/views").unwrap();
     let registry = Arc::new(hb);
     let mut app = tide::with_state(State {wms,client,registry});
 
-    // Redirect hackers to YouTube.
+   // Redirect hackers to YouTube.
     app.at("/.env").get(tide::Redirect::new("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
 
     // welcome
@@ -86,7 +105,7 @@ async fn main() -> tide::Result<()> {
         .get(routes::prop::get)
         .post(routes::prop::set);
 
-   
+    
         
     let mut channel = api.at("/channel");
     channel
@@ -95,9 +114,11 @@ async fn main() -> tide::Result<()> {
         .post(routes::channel::set)
         .get(routes::channel::get);
 
-
+    let mut wifi = api.at("/wifi");
+    wifi
+        .get(routes::wifi::list)
+        .at("/connect").post(routes::wifi::connect);
     // articles.at("/new").get(routes::articles::new);
-
     // articles
         // .at("/:article_id")
         // .get(routes::articles::show)

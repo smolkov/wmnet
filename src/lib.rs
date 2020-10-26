@@ -20,12 +20,16 @@ pub mod jumo;
 pub mod nitri;
 pub mod analog;
 pub mod prop;
+pub mod ssh;
+pub mod rpi;
 pub use error::Error;
+
 /// iotnode library.
 ///
 ///
 pub use interface::{Class, Property, Statistic};
-pub type Result<T> = std::result::Result<T, Error>;
+pub use anyhow::Result;
+// pub type Result<T> = std::result::Result<T, Box<Error>>;
 pub use config::Config;
 pub use wms::Workspace;
 pub use thingspeak::ThingSpeak;

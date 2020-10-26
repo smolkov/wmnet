@@ -17,8 +17,15 @@ const IFACE: &'static str = "iface";
 const SSID: &'static str = ".ssid";
 const KEY: &'static str = ".key";
 const CONF: &'static str = ".conf";
-
 const WIRELESS: &'static str = "wireless";
+
+
+
+#[derive(Debug, Clone,Serialize, Deserialize)]
+pub struct WifiConnect {
+    pub ssid: String,
+    pub psk: String,
+}
 
 #[derive(Debug, Clone,Serialize, Deserialize)]
 pub struct Wlan {
@@ -62,6 +69,7 @@ impl Wlan {
         self.security = security.to_owned();
     }
 }
+
 pub struct Wifi {
     path: PathBuf,
 }
@@ -191,21 +199,20 @@ pub fn setup(wms: &Workspace) -> Result<Wifi> {
 // IE: Unknown: BF0C30088B03AAFF1806AAFF1806
 // IE: Unknown: C005012A00FCFF
 
-pub fn scan() -> Vec<Wlan> {
+pub fn scan(iface:&str) -> Result<Vec<Wlan>> {
     // sudo iwlist wlan0 scan
     let mut wlans: Vec<Wlan> = Vec::new();
     let output = std::process::Command::new("iwlist")
-        .arg("wlp2s0")
+        .arg(iface)
         .arg("scan")
-        .output()
-        .unwrap();
+        .output()?;
     let list = String::from_utf8_lossy(&output.stdout);
-    println!("SCAN{}", &list);
+    // println!("SCAN{}", &list);
     let data: Vec<&str> = list.split('\n').collect();
     let mut wlan = Wlan::new();
     for s in data {
         let par = s.trim_start().to_owned();
-        println!("Par:{}",&par);
+        // println!("Par:{}",&par);
         let val: Vec<&str> = par.splitn(2,':').collect();
         if par.starts_with("Cell") {
             if val.len()>1 {
@@ -230,16 +237,22 @@ pub fn scan() -> Vec<Wlan> {
         }
         
     }
-    wlans
+    Ok(wlans)
 }
 
-pub fn connect(wlan: &Wlan) -> Result<()> {
-    let _output = std::process::Command::new("wpa_passphrase")
+pub fn connect(wlan: &WifiConnect) -> Result<()> {
+    let output = std::process::Command::new("wpa_passphrase")
         .arg(&wlan.ssid)
         .arg(&wlan.psk)
         .output()?;
+    log::info!("wpa credential:{}",String::from_utf8_lossy(&output.stdout));
     // fs::write(self.path().join(SSID), ssid.as_bytes())?;
     // fs::write(self.path().join(KEY), key.as_bytes())?;
     // fs::write(self.path().join(CONF), output.stdout)?;
     Ok(())
+}
+
+pub fn current() -> Result<Wlan> {
+    let wlan = Wlan::new();
+    Ok(wlan) 
 }

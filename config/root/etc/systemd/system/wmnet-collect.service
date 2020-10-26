@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=~
-ExecStart=/home/pi/wmnet-collect
+ExecStart=/home/pi/wms/bin/wmnet-collect
 Restart=always
 RestartSec=5
 User=pi

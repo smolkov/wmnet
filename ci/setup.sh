@@ -12,14 +12,14 @@ sudo chmod g+rw /dev/gpiomem
 
 
 ## Service
-sudo systemctl daemon-reload
+# sudo systemctl daemon-reload
 sudo systemctl enable --now ngrok.service
 sudo systemctl enable --now wmnet.service
 sudo systemctl enable --now wmnet-bot.service
 sudo systemctl enable --now wmnet-inky.service
 sudo systemctl enable --now wmnet-collect.service
 
-sudo systemctl start ngrok.service
+# sudo systemctl start ngrok.service
 sudo systemctl start wmnet.service
 sudo systemctl start wmnet-bot.service
 sudo systemctl start wmnet-inky.service

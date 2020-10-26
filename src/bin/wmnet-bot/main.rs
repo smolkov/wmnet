@@ -47,8 +47,10 @@ lazy_static!{
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    wmnet::logger::debug();
     let wms = wmnet::wms::default();
     let telegram = wms.telegram().unwrap(); 
+    
     // println!("TOKEN:{}",telegram.token().trim());
     let api = Api::new(telegram.token().trim());
     let result = api.send(GetMe).await?;

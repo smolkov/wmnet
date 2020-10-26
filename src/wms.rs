@@ -35,6 +35,14 @@ impl Workspace {
     pub fn name(&self) -> String {
         fs::read_to_string(self.path.join(DEVNAME)).unwrap_or("unknown".to_owned())
     }
+    pub fn remote_port(&self) -> Result<String> {
+        // println!("PORT:{}",fs::read_to_string(self.path.join(".remote_port"))?);
+        let port = fs::read_to_string(self.path.join(".remote_port"))?;
+        Ok(port)
+    }
+    pub fn remote_server(&self) -> String {
+        fs::read_to_string(self.path.join(".remote_server")).unwrap_or(String::from("root@78.47.241.33"))
+    }
     pub fn set_name(&self,device: &str) -> Result<()> {
         fs::write(self.path.join(DEVNAME), device.trim().as_bytes())?;
         Ok(())
@@ -55,6 +63,9 @@ impl Workspace {
     }
     pub fn rootdir(&self) -> &Path {
         &self.path
+    }
+    pub fn bindir(&self) -> PathBuf {
+        self.path.join("bin")
     }
     pub fn workspace(&self) -> Workspace {
         Workspace {
@@ -96,16 +107,19 @@ impl Workspace {
         }
         self
     }
+    pub fn apps() -> Result<()> {
+        Ok(())
+    }
 }
 
-const WQMS_PATH: &'static str = "WQMS_DIR";
+const WMSROOT: &'static str = "WMSROOT";
 pub fn rootpath() -> PathBuf {
-    if let Ok(wqmsdir) = env::var(WQMS_PATH) {
-        return PathBuf::from(wqmsdir);
+    if let Ok(wmsdir) = env::var(WMSROOT) {
+        return PathBuf::from(wmsdir);
     } else if let Ok(homedir) = env::var("HOME") {
-        return PathBuf::from(homedir).join(".wmnet");
+        return PathBuf::from(homedir).join("wms");
     }
-    PathBuf::from("./.wmnet")
+    PathBuf::from("wms")
 }
 
 
@@ -115,6 +129,8 @@ pub fn setup(wms: &mut Workspace) -> Result<()>{
     if !wms.path.is_dir() {
         log::info!("workspace[{}] setup", wms.path.display());
         fs::create_dir_all(&wms.path)?;
+        fs::write(wms.path.join(".remote_port"),"20001".as_bytes())?;
+        fs::write(wms.path.join(".remote_server"),"root@78.47.241.33".as_bytes())?;
         let _config = Config::default();
         // wms.write_config(&config)?;
         if let Err(err) = Repository::init(&wms.path) {
@@ -147,3 +163,4 @@ pub fn default() ->  Workspace {
     }
     wms
 }
+

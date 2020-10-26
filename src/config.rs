@@ -1,4 +1,4 @@
-use super::{Error, Result};
+use super::{Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
@@ -117,18 +117,18 @@ impl Default for Config {
     }
 }
 
-pub fn bad_working_staton_directory_error(path: &Path) -> Error {
-    Error::BadWorkstation {
-        msg: format!(
-            r#"
-A configuration {} file is not exists!
-to create new working station run `awm new sation-name`
-rerun last command in `station-name` directory
-"#,
-            path.display()
-        ),
-    }
-}
+// pub fn bad_working_staton_directory_error(path: &Path) -> Error {
+//     Error::BadWorkstation {
+//         msg: format!(
+//             r#"
+// A configuration {} file is not exists!
+// to create new working station run `awm new sation-name`
+// rerun last command in `station-name` directory
+// "#,
+//             path.display()
+//         ),
+//     }
+// }
 
 impl Config {
     /// Creates a new config instance.
@@ -139,9 +139,6 @@ impl Config {
     /// This does only minimal initialization. In particular, it does not load
     /// any config files from disk. Those will be loaded lazily as-needed.
     pub fn read(path: &Path) -> Result<Config> {
-        if !path.is_file() {
-            return Err(bad_working_staton_directory_error(&path));
-        }
         let toml_str = fs::read_to_string(&path)?;
         // let config: Config::from(&toml_str)?;
         let config: Config = toml::from_str(&toml_str)?;

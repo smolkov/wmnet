@@ -32,3 +32,4 @@ pub const GITHUB: &'static str = r#"
     </svg>
 </div>
 #"
+
