@@ -68,6 +68,15 @@ async fn main() -> tide::Result<()> {
     hb.register_templates_directory(".hbs", "./www/views").unwrap();
     let registry = Arc::new(hb);
     let mut app = tide::with_state(State {wms,client,registry});
+    app.with(tide::sessions::SessionMiddleware::new(
+        tide::sessions::MemoryStore::new(),
+        std::env::var("TIDE_SECRET")
+            .expect(
+                "Please provide a TIDE_SECRET value of at \
+                      least 32 bytes in order to run this example",
+            )
+            .as_bytes(),
+    )); 
 
    // Redirect hackers to YouTube.
     app.at("/.env").get(tide::Redirect::new("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
