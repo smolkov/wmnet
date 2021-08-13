@@ -1,9 +1,6 @@
 authtoken: 4uLwXBLeffK7gPDfnfRE4_57mjJ8edy5B9bhX4juVBh
 region: eu
 tunnels:
- httpbin:
-    proto: http
-    addr: 8000
  ssh-access:
     addr: 22
     proto: tcp
