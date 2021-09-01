@@ -1,7 +1,7 @@
 #!/bin/sh
 
-sudo systemctl stop wmnet-inky
 sudo systemctl stop wmnet-collect
+sudo systemctl stop wmnet-inky
 sudo systemctl stop wmnet-bot
 sudo systemctl stop wmnet
 # sudo systemctl stop ngrok

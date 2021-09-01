@@ -120,7 +120,7 @@ impl State {
             self.changed();
         }
         if !self.is_changed() {
-            if self.last.elapsed().as_secs() > 600 {
+            if self.last.elapsed().as_secs() > 120 {
                 self.changed();
             }
         }
@@ -132,6 +132,7 @@ fn main() -> Result<(), std::io::Error> {
     // Configure SPI
     let wms = wmnet::wms::default();
     wmnet::logger::debug();
+    log::info!("run");
     let mut state = new_state(wmnet::wms::default());
     let mut spi = Spidev::open("/dev/spidev0.0").expect("SPI device");
     let options = SpidevOptions::new()
@@ -317,7 +318,7 @@ fn main() -> Result<(), std::io::Error> {
             }
 
             egtext!(
-                text = &format!("ip: {}",state.host.trim()),
+                text = &format!("{}",state.host.trim()),
                 top_left = (1, 93),
                 style = text_style!(
                     font = ProFont9Point,
@@ -331,7 +332,7 @@ fn main() -> Result<(), std::io::Error> {
            
             egtext!(
                 text = &format!("{}", state.online.trim()),
-                top_left = (170, 93),
+                top_left = (166, 93),
                 style = text_style!(
                     font = ProFont9Point,
                     background_color = Color::Red,

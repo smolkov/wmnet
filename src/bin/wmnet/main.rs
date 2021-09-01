@@ -58,12 +58,6 @@ async fn main() -> tide::Result<()> {
     let client = redis::Client::open("redis://127.0.0.1/").unwrap();
     let wms = wmnet::wms::default();
     // create tunnel
-    task::spawn(async {
-        match wmnet::ssh::tunnel().await {
-            Ok(_) => log::info!("tunnel ok "),
-            Err(e) => log::warn!("tunnel error {}",e)
-        }
-    });
     let mut hb = Handlebars::new();
     hb.register_templates_directory(".hbs", "./www/views").unwrap();
     let registry = Arc::new(hb);

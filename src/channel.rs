@@ -211,7 +211,7 @@ impl Channel {
     }
     pub fn last_value(&self) -> Option<f32> {
         let value = self.value();
-        if let Ok(val) = value.parse::<f32>() {
+        if let Ok(val) = value.trim().parse::<f32>() {
             Some(val as f32)
         } else {
             None
@@ -219,7 +219,7 @@ impl Channel {
     }
     pub fn get_value(&self) -> Option<f32> {
         let value = self.value();
-        if let Ok(val) = value.parse::<f32>() {
+        if let Ok(val) = value.trim().parse::<f32>() {
             Some(val as f32)
         } else {
             None
@@ -228,7 +228,7 @@ impl Channel {
     pub fn slope(&self) -> f32 {
         match fs::read_to_string(self.path().join(SLOPE)) {
             Ok(m) => {
-                if let Ok(val) = m.parse::<f32>() {
+                if let Ok(val) = m.trim().parse::<f32>() {
                     val
                 } else {
                     1.0 as f32
@@ -241,7 +241,7 @@ impl Channel {
     pub fn intercept(&self) -> f32 {
         match fs::read_to_string(self.path().join(INTERCEPT)) {
             Ok(m) => {
-                if let Ok(val) = m.parse::<f32>() {
+                if let Ok(val) = m.trim().parse::<f32>() {
                     val
                 } else {
                     0.0 as f32
@@ -259,7 +259,7 @@ impl Channel {
     pub fn range(&self) -> (f32, f32) {
         let min: f32 = match fs::read_to_string(self.path().join(MIN)) {
             Ok(m) => {
-                if let Ok(val) = m.parse::<f32>() {
+                if let Ok(val) = m.trim().parse::<f32>() {
                     val as f32
                 } else {
                     0.0 as f32
@@ -269,7 +269,7 @@ impl Channel {
         };
         let max = match fs::read_to_string(self.path().join(MAX)) {
             Ok(m) => {
-                if let Ok(val) = m.parse::<f32>() {
+                if let Ok(val) = m.trim().parse::<f32>() {
                     val
                 } else {
                     0.0 as f32
@@ -346,7 +346,7 @@ impl Channel {
         self.data.clear();
     }
     pub fn push_data(&mut self, data: &str) -> Result<()>  {
-        match data.parse::<f32>() {
+        match data.trim().parse::<f32>() {
             Ok(value) => {
                 self.push_value(value)?;
             } ,
@@ -362,10 +362,13 @@ impl Channel {
         // if let Err(e) = wtr.write_record(&[ "timestamp", "tox", "dos", "ph", "orp", "cond","temp", "tur"]) {
             // log::error!("csv write header data - {}", e);
         // }
-
         let ctime = if let Ok(metadata) = fs::metadata(&path) {
             metadata.created().unwrap_or(SystemTime::now())
         }else {
+            if self.value() == "none" {
+                self.set_value(value);
+                self.set_status("W");
+            }
             SystemTime::now() 
         };
         let mut last = fs::read_to_string(&path).unwrap_or("".to_owned());
@@ -383,8 +386,8 @@ impl Channel {
         for val in data {
             let v:Vec<&str> = val.split(',').collect();
             if v.len() >1 {
-                if let Ok(value) = v[1].parse::<f32>() {
-                    let time = v[0].parse::<u64>().unwrap_or(0);
+                if let Ok(value) = v[1].trim().parse::<f32>() {
+                    let time = v[0].trim().parse::<u64>().unwrap_or(0);
                     signal.push(Data{time,value});
                 }
             }
@@ -568,7 +571,7 @@ impl Channels {
             }
         }
         if let Ok(number) = fs::read_to_string(&path) {
-            if let Ok(n) = number.parse::<u64>() {
+            if let Ok(n) = number.trim().parse::<u64>() {
                 return n;
             }
         }
@@ -616,7 +619,7 @@ impl Channels {
     /// default 1000 milliseconds
     pub fn measurement_interval(&self) -> std::time::Duration {
         if let Ok(millis) = fs::read_to_string(self.path().join(MEASUREMENT_INTERVAL)) {
-            if let Ok(millis) = millis.parse::<u64>() {
+            if let Ok(millis) = millis.trim().parse::<u64>() {
                 return std::time::Duration::from_millis(millis);
             }
         }
@@ -626,17 +629,17 @@ impl Channels {
     /// default 60 sec
      pub fn average_interval(&self) -> std::time::Duration {
         if let Ok(interval) = fs::read_to_string(self.path().join(AVERAGE_INTERVAL)) {
-            if let Ok(interval) = interval.parse::<u64>() {
+            if let Ok(interval) = interval.trim().parse::<u64>() {
                 return std::time::Duration::from_secs(interval);
             }
         }
-        std::time::Duration::from_secs(600)
+        std::time::Duration::from_secs(60)
     }
     /// Outliers
     /// default 0
     pub fn outliers(&self) -> u16 {
         if let Ok(outliers) = fs::read_to_string(&self.path().join(OUTLIERS)) {
-            if let Ok(outliers) = outliers.parse::<u16>() {
+            if let Ok(outliers) = outliers.trim().parse::<u16>() {
                 return outliers;
             }
         }
@@ -646,7 +649,7 @@ impl Channels {
     /// default :2.5
     pub fn maxcv(&self) -> f32 {
         if let Ok(maxcv) = fs::read_to_string(self.path().join(MAXCV)) {
-            if let Ok(maxcv) = maxcv.parse::<f32>() {
+            if let Ok(maxcv) = maxcv.trim().parse::<f32>() {
                 return maxcv;
             }
         }

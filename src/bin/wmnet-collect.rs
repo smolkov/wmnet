@@ -268,7 +268,7 @@ fn main(args: Args) -> Result<()> {
                     }
                     start_measurement = std::time::Instant::now();
                     let mut data = TSData::new(); 
-                    // println!("TOX={}DOS={}",tox.last_value().unwrap(),dos.last_value().unwrap());
+                    println!("TOX={}DOS={}",tox.last_value().unwrap(),dos.last_value().unwrap());
                     data.field1 = tox.last_value();
                     data.field2 = dos.last_value();
                     data.field3 = ph.last_value();
