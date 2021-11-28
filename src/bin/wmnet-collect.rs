@@ -28,7 +28,7 @@ use crossbeam::channel::{bounded, select, tick, Receiver};
 
 ///Edinburgh sensor command argument
 #[derive(Debug, StructOpt)]
-#[structopt(name = "nitritox", about = "🧰nitritox rs232 interface usage.")]
+#[structopt(name = "nitritox", about = "🧰 nitritox rs232 interface usage.")]
 pub struct Args {
     ///🗁 simulate nitritox measurement
     #[structopt(short = "d", long = "debug")]
@@ -82,7 +82,7 @@ const CMD: &str = "D\r\n";
 fn nitritox_rs232(nitri: &Nitri) -> std::io::Result<()> {
     // log::info!("NITRITOX: collect data");
     let mut buf: Vec<u8> = vec![0; 1000];
-    let mut port = serial::open(nitri.uart().as_str())?;
+    let mut port = serial::open("/dev/ttyUSB0")?;
     port.configure(&SETTINGS).unwrap();
     port.set_timeout(Duration::from_secs(4))?;
     port.write(CMD.as_bytes())?;
