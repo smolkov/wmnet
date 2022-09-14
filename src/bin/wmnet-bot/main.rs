@@ -45,7 +45,7 @@ lazy_static!{
     static ref STATE: Mutex<State> =   Mutex::new(State::new());
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Error> {
     wmnet::logger::debug();
     let wms = wmnet::wms::default();
