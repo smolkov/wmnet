@@ -82,7 +82,7 @@ shell = "0.3.2"
 libmodbus-rs = "0.8.0"
 
 futures = "0.3"
-tokio = { version = "1.21.1", features = ["macros", "time", "fs"] }
+tokio = { version = "1.24.2", features = ["macros", "time", "fs"] }
 ## Bots 
 telegram-bot = "0.8.0"
 
